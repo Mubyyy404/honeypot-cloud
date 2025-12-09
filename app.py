@@ -7,15 +7,15 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Log
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'real-email-key-2025'
+app.config['SECRET_KEY'] = 'sentinel-enterprise-key-v3'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
-# --- REAL GMAIL CONFIGURATION ---
+# --- EMAIL CONFIGURATION ---
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
-# REPLACE THESE TWO LINES WITH YOUR DETAILS:
-SMTP_EMAIL = "mohamedmubeen576@gmail.com" 
-SMTP_PASSWORD = "enof lmkz uzao rkdq" 
+# REPLACE THESE WITH YOUR REAL DETAILS:
+SMTP_EMAIL = "your_real_email@gmail.com" 
+SMTP_PASSWORD = "your_16_char_app_password" 
 
 db.init_app(app)
 login_manager = LoginManager()
@@ -29,10 +29,10 @@ def load_user(id):
 with app.app_context():
     db.create_all()
 
+# --- EMAIL LOGIC ---
 def send_email_alert(user_email, event, filename, device):
     if not user_email: return
     try:
-        # Create the email content
         subject = f"🚨 THREAT DETECTED: {event} on {device}"
         body = f"""
         SENTINEL SECURITY ALERT SYSTEM
@@ -45,36 +45,48 @@ def send_email_alert(user_email, event, filename, device):
         
         Please check your dashboard immediately.
         """
-        
         msg = MIMEText(body)
         msg['Subject'] = subject
         msg['From'] = SMTP_EMAIL
         msg['To'] = user_email
 
-        # Connect to Gmail and send
         print(f"[*] Connecting to Gmail as {SMTP_EMAIL}...")
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()  # Secure the connection
+            server.starttls()
             server.login(SMTP_EMAIL, SMTP_PASSWORD)
             server.sendmail(SMTP_EMAIL, user_email, msg.as_string())
         
-        print(f"[+] Email successfully sent to {user_email}")
+        print(f"[+] Email sent to {user_email}")
         return True
     except Exception as e:
         print(f"[!] Email Failed: {e}")
         return False
 
 # --- ROUTES ---
+
 @app.route('/')
 @login_required
 def dashboard():
-    logs = Log.query.filter_by(user_id=current_user.id).order_by(Log.id.desc()).all()
-    # Simple stats for the dashboard cards
+    # Show last 15 logs
+    logs = Log.query.filter_by(user_id=current_user.id).order_by(Log.id.desc()).limit(15).all()
     stats = {
-        "total": len(logs),
+        "total": Log.query.filter_by(user_id=current_user.id).count(),
         "devices": db.session.query(Log.device_name).filter_by(user_id=current_user.id).distinct().count()
     }
     return render_template('dashboard.html', user=current_user, logs=logs, stats=stats, page="dashboard")
+
+@app.route('/devices')
+@login_required
+def devices():
+    # Logic to show unique devices
+    logs = Log.query.filter_by(user_id=current_user.id).order_by(Log.id.desc()).all()
+    seen = set()
+    unique_devices = []
+    for log in logs:
+        if log.device_name not in seen:
+            unique_devices.append(log)
+            seen.add(log.device_name)
+    return render_template('dashboard.html', user=current_user, devices=unique_devices, page="devices")
 
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
@@ -83,7 +95,7 @@ def settings():
         current_user.alert_email = request.form.get('email')
         current_user.email_enabled = 'enabled' in request.form
         db.session.commit()
-        flash('Email preferences saved.')
+        flash('Settings saved successfully.')
     return render_template('dashboard.html', user=current_user, page="settings")
 
 @app.route('/download_agent')
@@ -98,12 +110,50 @@ def download_agent():
     response.mimetype = 'text/x-python'
     return response
 
+# --- THIS IS THE ROUTE THAT WAS MISSING ---
+@app.route('/download_installer')
+@login_required
+def download_installer():
+    batch_script = """
+@echo off
+echo [*] SENTINEL AUTO-INSTALLER
+echo --------------------------------
+echo [*] Step 1: Installing Python Libraries...
+pip install requests watchdog
+
+echo [*] Step 2: Configuring Startup...
+set "STARTUP=%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"
+set "SOURCE=%~dp0sentinel_guard.py"
+set "DEST=%STARTUP%\\sentinel_service.pyw"
+
+if not exist "%SOURCE%" (
+    echo [!] ERROR: sentinel_guard.py not found!
+    echo Please keep this .bat file in the SAME folder as the .py agent.
+    pause
+    exit
+)
+
+copy "%SOURCE%" "%DEST%" /Y
+
+echo [*] Step 3: Starting Service...
+start "" "%DEST%"
+
+echo --------------------------------
+echo [+] SUCCESS! Monitoring is active 24/7.
+echo You can close this window.
+pause
+"""
+    response = make_response(batch_script)
+    response.headers['Content-Disposition'] = 'attachment; filename=install_windows.bat'
+    response.mimetype = 'text/plain'
+    return response
+# ------------------------------------------
+
 @app.route('/api/report', methods=['POST'])
 def report_incident():
     data = request.json
     user = User.query.filter_by(api_key=data.get('api_key')).first()
     if user:
-        # 1. Save Log
         new_log = Log(
             timestamp=data.get('time'), event_type=data.get('event'),
             filename=data.get('file'), device_name=data.get('device', 'Unknown'),
@@ -112,14 +162,13 @@ def report_incident():
         db.session.add(new_log)
         db.session.commit()
         
-        # 2. Send Real Email
         if user.email_enabled and user.alert_email:
             send_email_alert(user.alert_email, data.get('event'), data.get('file'), data.get('device'))
             
         return jsonify({"status": "logged"}), 200
     return jsonify({"error": "Invalid Key"}), 403
 
-# (Keep Login/Register/Logout routes from previous steps)
+# --- AUTH ROUTES ---
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
