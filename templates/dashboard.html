@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RHDS Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <meta http-equiv="refresh" content="3"> </head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>Ransomware Detection HQ</h1>
+            <div>User: <b>{{ user.username }}</b> <a href="/logout" class="btn btn-sm">Logout</a></div>
+        </header>
+        <div class="card info">
+            <h3>Step 1: Deploy Agent</h3>
+            <p>Download the monitor script. It is pre-configured with your ID: <code>{{ user.api_key }}</code></p>
+            <a href="/download_agent" class="btn btn-primary">Download My Agent (.py)</a>
+        </div>
+        <div class="card">
+            <h3>Step 2: Live Threat Feed</h3>
+            <table>
+                <thead><tr><th>Time (UTC)</th><th>Event</th><th>File Affected</th></tr></thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr class="alert-row"><td>{{ log.timestamp }}</td><td>{{ log.event_type }}</td><td>{{ log.filename }}</td></tr>
+                    {% else %}
+                    <tr><td colspan="3">No threats detected. System secure.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
