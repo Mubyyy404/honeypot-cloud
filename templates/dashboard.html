@@ -2,33 +2,119 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>RHDS Dashboard</title>
+    <title>Sentinel Dashboard</title>
     <link rel="stylesheet" href="/static/style.css">
-    <meta http-equiv="refresh" content="3"> </head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
 <body>
-    <div class="dashboard">
-        <header>
-            <h1>Ransomware Detection HQ</h1>
-            <div>User: <b>{{ user.username }}</b> <a href="/logout" class="btn btn-sm">Logout</a></div>
-        </header>
-        <div class="card info">
-            <h3>Step 1: Deploy Agent</h3>
-            <p>Download the monitor script. It is pre-configured with your ID: <code>{{ user.api_key }}</code></p>
-            <a href="/download_agent" class="btn btn-primary">Download My Agent (.py)</a>
-        </div>
-        <div class="card">
-            <h3>Step 2: Live Threat Feed</h3>
-            <table>
-                <thead><tr><th>Time (UTC)</th><th>Event</th><th>File Affected</th></tr></thead>
-                <tbody>
-                    {% for log in logs %}
-                    <tr class="alert-row"><td>{{ log.timestamp }}</td><td>{{ log.event_type }}</td><td>{{ log.filename }}</td></tr>
-                    {% else %}
-                    <tr><td colspan="3">No threats detected. System secure.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-shield-virus"></i> SENTINEL
+            </div>
+            <nav>
+                <a href="#" class="active"><i class="fa-solid fa-table-columns"></i> Dashboard</a>
+                <a href="#"><i class="fa-solid fa-server"></i> Devices ({{ stats.devices }})</a>
+                <a href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            </nav>
+            <div class="user-info">
+                Logged in as: <b>{{ user.username }}</b>
+            </div>
+        </aside>
+
+        <main class="content">
+            <header>
+                <h1>Security Overview</h1>
+                <div class="api-badge">API Key: {{ user.api_key }}</div>
+            </header>
+
+            <div class="stats-grid">
+                <div class="card stat-card">
+                    <h3>Total Threats</h3>
+                    <div class="number red">{{ stats.total }}</div>
+                </div>
+                <div class="card stat-card">
+                    <h3>Protected Devices</h3>
+                    <div class="number green">{{ stats.devices }}</div>
+                </div>
+                <div class="card stat-card">
+                    <h3>System Status</h3>
+                    <div class="number blue">ONLINE</div>
+                </div>
+            </div>
+
+            <div class="card download-section">
+                <h2><i class="fa-solid fa-download"></i> Install Agent</h2>
+                <p>Select your operating system to download the monitoring agent.</p>
+                
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="openTab('win')"><i class="fa-brands fa-windows"></i> Windows</button>
+                    <button class="tab-btn" onclick="openTab('linux')"><i class="fa-brands fa-linux"></i> Linux</button>
+                    <button class="tab-btn" onclick="openTab('mac')"><i class="fa-brands fa-apple"></i> MacOS</button>
+                </div>
+
+                <div id="win" class="tab-content active">
+                    <p>1. Download the agent script.<br>2. Make sure Python is installed.<br>3. Double-click to run.</p>
+                    <a href="/download_agent" class="btn btn-primary">Download for Windows (.py)</a>
+                </div>
+                <div id="linux" class="tab-content">
+                    <p>Run via terminal: <code>python3 sentinel_agent.py</code></p>
+                    <a href="/download_agent" class="btn btn-primary">Download for Linux (.py)</a>
+                </div>
+                <div id="mac" class="tab-content">
+                    <p>Run via terminal: <code>python3 sentinel_agent.py</code></p>
+                    <a href="/download_agent" class="btn btn-primary">Download for Mac (.py)</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Live Threat Feed</h2>
+                    <form action="/clear_logs" method="POST">
+                        <button class="btn btn-sm btn-danger">Clear History</button>
+                    </form>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time (UTC)</th>
+                            <th>Status</th>
+                            <th>Device Name</th>
+                            <th>OS</th>
+                            <th>File Affected</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.timestamp }}</td>
+                            <td><span class="badge badge-danger">{{ log.event_type }}</span></td>
+                            <td>{{ log.device_name }}</td>
+                            <td><i class="fa-solid fa-desktop"></i> {{ log.os_info }}</td>
+                            <td class="file-col">{{ log.filename }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" style="text-align:center">System Secure. No threats detected.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
     </div>
+
+    <script>
+        function openTab(tabName) {
+            var i;
+            var x = document.getElementsByClassName("tab-content");
+            var btn = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < x.length; i++) { x[i].style.display = "none"; }
+            for (i = 0; i < btn.length; i++) { btn[i].classList.remove("active"); }
+            document.getElementById(tabName).style.display = "block";
+            event.currentTarget.classList.add("active");
+        }
+        // Auto refresh
+        setTimeout(function(){ location.reload(); }, 5000);
+    </script>
 </body>
 </html>
