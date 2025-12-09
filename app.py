@@ -14,8 +14,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 # REPLACE THESE WITH YOUR REAL DETAILS:
-SMTP_EMAIL = "your_real_email@gmail.com" 
-SMTP_PASSWORD = "your_16_char_app_password" 
+SMTP_EMAIL = "mohamedmubeen576@gmail.com" 
+SMTP_PASSWORD = "qyod ymow fksy rssr" 
 
 db.init_app(app)
 login_manager = LoginManager()
