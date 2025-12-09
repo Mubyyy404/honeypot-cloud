@@ -1,4 +1,3 @@
-# client_template.py
 import time
 import os
 import requests
@@ -13,14 +12,13 @@ API_KEY = "[[API_KEY_PLACEHOLDER]]"
 SERVER_URL = "[[SERVER_URL_PLACEHOLDER]]"
 # --------------------------
 
-# Auto-detect System Info
 HOSTNAME = socket.gethostname()
 OS_TYPE = f"{platform.system()} {platform.release()}"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 HONEY_DIR = os.path.join(BASE_DIR, "honeypot_monitor")
 
-print(f"[*] -- SENTINEL AGENT V2.0 --")
+print(f"[*] -- SENTINEL AGENT V3.0 --")
 print(f"[*] Identity: {API_KEY}")
 print(f"[*] Device: {HOSTNAME} ({OS_TYPE})")
 print(f"[*] Server: {SERVER_URL}")
@@ -44,13 +42,16 @@ class AgentHandler(FileSystemEventHandler):
         
         print(f"[!] ALERT: {event_type} - {filename}")
         
+        # FIX: Use datetime.now() instead of utcnow() to get LOCAL time
+        local_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
         payload = {
             "api_key": API_KEY,
             "event": event_type,
             "file": filename,
-            "device": HOSTNAME,    # New: Send Hostname
-            "os": OS_TYPE,         # New: Send OS
-            "time": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+            "device": HOSTNAME,
+            "os": OS_TYPE,
+            "time": local_time  # <--- Sending Local Time now
         }
         
         try:
