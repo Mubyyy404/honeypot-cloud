@@ -7,17 +7,15 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Log
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'final-secret-key'
+app.config['SECRET_KEY'] = 'real-email-key-2025'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
-# --- EMAIL CONFIGURATION (REQUIRED FOR ALERTS) ---
-# 1. Use a Gmail account.
-# 2. Go to Google Account > Security > 2-Step Verification > App Passwords.
-# 3. Generate a password and paste it below.
+# --- REAL GMAIL CONFIGURATION ---
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
-SMTP_EMAIL = "YOUR_GMAIL@gmail.com"      # <--- REPLACE THIS
-SMTP_PASSWORD = "YOUR_APP_PASSWORD"      # <--- REPLACE THIS (16 chars)
+# REPLACE THESE TWO LINES WITH YOUR DETAILS:
+SMTP_EMAIL = "mohamedmubeen576@gmail.com" 
+SMTP_PASSWORD = "enof lmkz uzao rkdq" 
 
 db.init_app(app)
 login_manager = LoginManager()
@@ -34,35 +32,49 @@ with app.app_context():
 def send_email_alert(user_email, event, filename, device):
     if not user_email: return
     try:
-        subject = f"🚨 SECURITY ALERT: {event} on {device}"
+        # Create the email content
+        subject = f"🚨 THREAT DETECTED: {event} on {device}"
         body = f"""
-        SENTINEL SECURITY ALERT
-        -----------------------------------
-        Event:   {event}
-        File:    {filename}
-        Device:  {device}
-        -----------------------------------
-        This is an automated warning. Check your dashboard immediately.
+        SENTINEL SECURITY ALERT SYSTEM
+        ================================
+        WARNING: A file modification was detected.
+        
+        - Event Type: {event}
+        - File Name:  {filename}
+        - Device ID:  {device}
+        
+        Please check your dashboard immediately.
         """
+        
         msg = MIMEText(body)
         msg['Subject'] = subject
         msg['From'] = SMTP_EMAIL
         msg['To'] = user_email
 
+        # Connect to Gmail and send
+        print(f"[*] Connecting to Gmail as {SMTP_EMAIL}...")
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
+            server.starttls()  # Secure the connection
             server.login(SMTP_EMAIL, SMTP_PASSWORD)
             server.sendmail(SMTP_EMAIL, user_email, msg.as_string())
-        print(f"[*] Email sent successfully to {user_email}")
+        
+        print(f"[+] Email successfully sent to {user_email}")
+        return True
     except Exception as e:
         print(f"[!] Email Failed: {e}")
+        return False
 
 # --- ROUTES ---
 @app.route('/')
 @login_required
 def dashboard():
     logs = Log.query.filter_by(user_id=current_user.id).order_by(Log.id.desc()).all()
-    return render_template('dashboard.html', user=current_user, logs=logs, page="dashboard")
+    # Simple stats for the dashboard cards
+    stats = {
+        "total": len(logs),
+        "devices": db.session.query(Log.device_name).filter_by(user_id=current_user.id).distinct().count()
+    }
+    return render_template('dashboard.html', user=current_user, logs=logs, stats=stats, page="dashboard")
 
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
@@ -71,7 +83,7 @@ def settings():
         current_user.alert_email = request.form.get('email')
         current_user.email_enabled = 'enabled' in request.form
         db.session.commit()
-        flash('Email settings saved!')
+        flash('Email preferences saved.')
     return render_template('dashboard.html', user=current_user, page="settings")
 
 @app.route('/download_agent')
@@ -82,9 +94,7 @@ def download_agent():
     content = content.replace('[[API_KEY_PLACEHOLDER]]', current_user.api_key)
     content = content.replace('[[SERVER_URL_PLACEHOLDER]]', request.host_url.rstrip('/'))
     response = make_response(content)
-    # .pyw extension hides the black terminal window on Windows (Silent Mode)
-    # If you want them to SEE the window, change to .py
-    response.headers['Content-Disposition'] = 'attachment; filename=sentinel_guard.py' 
+    response.headers['Content-Disposition'] = 'attachment; filename=sentinel_guard.py'
     response.mimetype = 'text/x-python'
     return response
 
@@ -93,7 +103,7 @@ def report_incident():
     data = request.json
     user = User.query.filter_by(api_key=data.get('api_key')).first()
     if user:
-        # Save Log
+        # 1. Save Log
         new_log = Log(
             timestamp=data.get('time'), event_type=data.get('event'),
             filename=data.get('file'), device_name=data.get('device', 'Unknown'),
@@ -102,14 +112,14 @@ def report_incident():
         db.session.add(new_log)
         db.session.commit()
         
-        # Send Email
+        # 2. Send Real Email
         if user.email_enabled and user.alert_email:
-            send_email_alert(user.alert_email, data.get('event'), data.get('file'), data.get('device', 'Unknown'))
+            send_email_alert(user.alert_email, data.get('event'), data.get('file'), data.get('device'))
             
         return jsonify({"status": "logged"}), 200
     return jsonify({"error": "Invalid Key"}), 403
 
-# (Keep Login/Register/Logout routes from previous code)
+# (Keep Login/Register/Logout routes from previous steps)
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
