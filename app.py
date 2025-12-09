@@ -15,7 +15,7 @@ SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 # REPLACE THESE WITH YOUR REAL DETAILS:
 SMTP_EMAIL = "mohamedmubeen576@gmail.com" 
-SMTP_PASSWORD = "qyod ymow fksy rssr" 
+SMTP_PASSWORD = "qyodymowfksyrssr" 
 
 db.init_app(app)
 login_manager = LoginManager()
