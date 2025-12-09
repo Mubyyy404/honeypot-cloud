@@ -7,15 +7,17 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Log
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'enterprise-key-v3'
+app.config['SECRET_KEY'] = 'final-secret-key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
-# --- EMAIL CONFIG (Use a real Gmail or SMTP for production) ---
-# For this demo, we will just PRINT the email to console to avoid errors if you don't have SMTP setup.
+# --- EMAIL CONFIGURATION (REQUIRED FOR ALERTS) ---
+# 1. Use a Gmail account.
+# 2. Go to Google Account > Security > 2-Step Verification > App Passwords.
+# 3. Generate a password and paste it below.
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
-SMTP_EMAIL = "your_email@gmail.com" 
-SMTP_PASSWORD = "your_app_password"
+SMTP_EMAIL = "YOUR_GMAIL@gmail.com"      # <--- REPLACE THIS
+SMTP_PASSWORD = "YOUR_APP_PASSWORD"      # <--- REPLACE THIS (16 chars)
 
 db.init_app(app)
 login_manager = LoginManager()
@@ -29,62 +31,48 @@ def load_user(id):
 with app.app_context():
     db.create_all()
 
-# --- HELPER: Send Email ---
-def send_alert_email(user_email, event, file, device):
+def send_email_alert(user_email, event, filename, device):
     if not user_email: return
     try:
-        msg = MIMEText(f"CRITICAL ALERT on {device}\n\nEvent: {event}\nFile: {file}\n\nCheck dashboard immediately.")
-        msg['Subject'] = f"Sentinel Alert: {event} detected"
-        msg['From'] = "Sentinel Security"
+        subject = f"🚨 SECURITY ALERT: {event} on {device}"
+        body = f"""
+        SENTINEL SECURITY ALERT
+        -----------------------------------
+        Event:   {event}
+        File:    {filename}
+        Device:  {device}
+        -----------------------------------
+        This is an automated warning. Check your dashboard immediately.
+        """
+        msg = MIMEText(body)
+        msg['Subject'] = subject
+        msg['From'] = SMTP_EMAIL
         msg['To'] = user_email
-        
-        # NOTE: Uncomment below to actually send if you configure SMTP
-        # with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-        #    server.starttls()
-        #    server.login(SMTP_EMAIL, SMTP_PASSWORD)
-        #    server.sendmail(SMTP_EMAIL, user_email, msg.as_string())
-        
-        print(f" [EMAIL SENT] To: {user_email} | Body: {event} on {file}")
+
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SMTP_EMAIL, SMTP_PASSWORD)
+            server.sendmail(SMTP_EMAIL, user_email, msg.as_string())
+        print(f"[*] Email sent successfully to {user_email}")
     except Exception as e:
-        print(f" [EMAIL ERROR] {e}")
+        print(f"[!] Email Failed: {e}")
 
 # --- ROUTES ---
-
 @app.route('/')
 @login_required
 def dashboard():
-    logs = Log.query.filter_by(user_id=current_user.id).order_by(Log.id.desc()).limit(10).all()
-    stats = {
-        "total": Log.query.filter_by(user_id=current_user.id).count(),
-        "devices": db.session.query(Log.device_name).filter_by(user_id=current_user.id).distinct().count()
-    }
-    return render_template('dashboard.html', page="dashboard", user=current_user, logs=logs, stats=stats)
-
-@app.route('/devices')
-@login_required
-def devices():
-    # Get unique devices and their last activity
-    # SQL alchemy complex query simplified for demo:
     logs = Log.query.filter_by(user_id=current_user.id).order_by(Log.id.desc()).all()
-    seen = set()
-    unique_devices = []
-    for log in logs:
-        if log.device_name not in seen:
-            unique_devices.append(log)
-            seen.add(log.device_name)
-    return render_template('dashboard.html', page="devices", user=current_user, devices=unique_devices)
+    return render_template('dashboard.html', user=current_user, logs=logs, page="dashboard")
 
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
     if request.method == 'POST':
-        email = request.form.get('email')
-        enabled = 'enabled' in request.form
-        current_user.alert_email = email
-        current_user.email_enabled = enabled
+        current_user.alert_email = request.form.get('email')
+        current_user.email_enabled = 'enabled' in request.form
         db.session.commit()
-        flash('Settings updated successfully')
-    return render_template('dashboard.html', page="settings", user=current_user)
+        flash('Email settings saved!')
+    return render_template('dashboard.html', user=current_user, page="settings")
 
 @app.route('/download_agent')
 @login_required
@@ -94,30 +82,10 @@ def download_agent():
     content = content.replace('[[API_KEY_PLACEHOLDER]]', current_user.api_key)
     content = content.replace('[[SERVER_URL_PLACEHOLDER]]', request.host_url.rstrip('/'))
     response = make_response(content)
-    response.headers['Content-Disposition'] = 'attachment; filename=sentinel_agent.py'
+    # .pyw extension hides the black terminal window on Windows (Silent Mode)
+    # If you want them to SEE the window, change to .py
+    response.headers['Content-Disposition'] = 'attachment; filename=sentinel_guard.py' 
     response.mimetype = 'text/x-python'
-    return response
-
-@app.route('/download_installer')
-@login_required
-def download_installer():
-    # Dynamic Batch script for Windows 24/7 Setup
-    batch_script = f"""
-@echo off
-echo [*] Sentinel Auto-Installer (Windows)
-echo [*] Installing dependencies...
-pip install requests watchdog
-echo [*] Creating startup entry...
-set "STARTUP_FOLDER=%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"
-copy "sentinel_agent.py" "%STARTUP_FOLDER%\\sentinel_service.pyw"
-echo [*] Starting service...
-start "" "%STARTUP_FOLDER%\\sentinel_service.pyw"
-echo [+] SUCCESS! Monitoring is now active 24/7.
-pause
-"""
-    response = make_response(batch_script)
-    response.headers['Content-Disposition'] = 'attachment; filename=install_windows.bat'
-    response.mimetype = 'text/plain'
     return response
 
 @app.route('/api/report', methods=['POST'])
@@ -125,6 +93,7 @@ def report_incident():
     data = request.json
     user = User.query.filter_by(api_key=data.get('api_key')).first()
     if user:
+        # Save Log
         new_log = Log(
             timestamp=data.get('time'), event_type=data.get('event'),
             filename=data.get('file'), device_name=data.get('device', 'Unknown'),
@@ -133,14 +102,14 @@ def report_incident():
         db.session.add(new_log)
         db.session.commit()
         
-        # Trigger Email
-        if user.email_enabled:
-            send_alert_email(user.alert_email, data.get('event'), data.get('file'), data.get('device'))
+        # Send Email
+        if user.email_enabled and user.alert_email:
+            send_email_alert(user.alert_email, data.get('event'), data.get('file'), data.get('device', 'Unknown'))
             
         return jsonify({"status": "logged"}), 200
     return jsonify({"error": "Invalid Key"}), 403
 
-# --- AUTH ROUTES (Keep existing Login/Register/Logout) ---
+# (Keep Login/Register/Logout routes from previous code)
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -166,7 +135,9 @@ def login():
     return render_template('login.html')
 
 @app.route('/logout')
-def logout(): logout_user(); return redirect(url_for('login'))
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
