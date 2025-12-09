@@ -7,26 +7,31 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from datetime import datetime
 
-# --- INJECTED BY SERVER ---
+# --- CONFIG (Injected by Server) ---
 API_KEY = "[[API_KEY_PLACEHOLDER]]"
 SERVER_URL = "[[SERVER_URL_PLACEHOLDER]]"
-# --------------------------
+# -----------------------------------
 
 HOSTNAME = socket.gethostname()
 OS_TYPE = f"{platform.system()} {platform.release()}"
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-HONEY_DIR = os.path.join(BASE_DIR, "honeypot_monitor")
+HONEY_DIR = os.path.join(BASE_DIR, "Sentinel_Protected_Folder")
+TRAP_FILE = os.path.join(HONEY_DIR, "important_passwords.txt")
 
-print(f"[*] -- SENTINEL AGENT V3.0 --")
-print(f"[*] Identity: {API_KEY}")
-print(f"[*] Device: {HOSTNAME} ({OS_TYPE})")
-print(f"[*] Server: {SERVER_URL}")
+print(f"[*] SENTINEL AGENT ACTIVATED")
+print(f"[*] Monitoring Device: {HOSTNAME}")
+print(f"[*] Target File: {TRAP_FILE}")
+print(f"[*] Status: ARMED AND WATCHING...")
 
+# 1. Create the Trap Folder
 if not os.path.exists(HONEY_DIR):
     os.makedirs(HONEY_DIR)
-    with open(os.path.join(HONEY_DIR, "classified_data.txt"), "w") as f:
-        f.write("CONFIDENTIAL: Do not modify this file.")
+
+# 2. Create the Trap File (if missing)
+if not os.path.exists(TRAP_FILE):
+    with open(TRAP_FILE, "w") as f:
+        f.write("CONFIDENTIAL PASSWORDS\n\nFacebook: pass123\nGmail: secret456\n\nDO NOT MODIFY THIS FILE.")
+    print("[+] Trap file created.")
 
 class AgentHandler(FileSystemEventHandler):
     def on_modified(self, event):
@@ -40,10 +45,7 @@ class AgentHandler(FileSystemEventHandler):
         filename = os.path.basename(path)
         if filename.startswith("."): return
         
-        print(f"[!] ALERT: {event_type} - {filename}")
-        
-        # FIX: Use datetime.now() instead of utcnow() to get LOCAL time
-        local_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"\n[!!!] ALERT TRIGGERED: {event_type} on {filename}")
         
         payload = {
             "api_key": API_KEY,
@@ -51,20 +53,24 @@ class AgentHandler(FileSystemEventHandler):
             "file": filename,
             "device": HOSTNAME,
             "os": OS_TYPE,
-            "time": local_time  # <--- Sending Local Time now
+            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
         
         try:
             requests.post(f"{SERVER_URL}/api/report", json=payload, timeout=5)
-        except Exception as e:
-            print(f" [X] Connection Failed: {e}")
+            print(" -> Alert sent to Server & Email.")
+        except:
+            print(" -> Failed to reach server (Check Internet).")
 
 if __name__ == "__main__":
     observer = Observer()
     observer.schedule(AgentHandler(), path=HONEY_DIR, recursive=False)
     observer.start()
+    
+    # Keep the window open so user knows it's running
     try:
-        while True: time.sleep(1)
+        while True:
+            time.sleep(1)
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
