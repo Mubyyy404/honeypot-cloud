@@ -1,14 +1,36 @@
 <!DOCTYPE html>
-<title>Register</title>
-<link rel="stylesheet" href="/static/style.css">
-<body class="auth-page">
-    <div class="auth-box">
-        <h2>New Agent Registration</h2>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - Sentinel</title>
+    <style>
+        body { margin:0; font-family:'Segoe UI', sans-serif; background:#0f172a; color:#f8fafc; display:flex; justify-content:center; align-items:center; height:100vh; }
+        .auth-card { background:#1e293b; padding:2rem; border-radius:12px; border:1px solid #334155; width:100%; max-width:350px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.5); }
+        h2 { margin-bottom:1.5rem; color:#22c55e; }
+        input { width:90%; padding:12px; margin:10px 0; background:#0f172a; border:1px solid #334155; color:white; border-radius:6px; outline:none; }
+        input:focus { border-color:#22c55e; }
+        button { width:100%; padding:12px; margin-top:10px; background:#22c55e; border:none; color:white; border-radius:6px; font-weight:bold; cursor:pointer; font-size:1rem; }
+        button:hover { background:#16a34a; }
+        .links { margin-top:20px; font-size:0.9rem; }
+        a { color:#94a3b8; text-decoration:none; }
+        a:hover { color:#22c55e; }
+        .alert { color:#ef4444; background:rgba(239,68,68,0.1); padding:10px; border-radius:6px; margin-bottom:15px; font-size:0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="auth-card">
+        <h2>Register Agent</h2>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}<div class="alert">{{ messages[0] }}</div>{% endif %}
+        {% endwith %}
         <form method="POST">
-            <input type="text" name="username" placeholder="Pick Username" required>
-            <input type="password" name="password" placeholder="Pick Password" required>
-            <button type="submit">Register</button>
+            <input type="text" name="username" placeholder="Choose Username" required>
+            <input type="password" name="password" placeholder="Choose Password" required>
+            <button type="submit">Create Account</button>
         </form>
-        <p><a href="/login">Back to Login</a></p>
+        <div class="links">
+            <p>Already registered? <a href="/login">Back to Login</a></p>
+        </div>
     </div>
 </body>
+</html>
