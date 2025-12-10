@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberSOC | Threat Monitor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script>
+        // TODO: PASTE YOUR EMAILJS PUBLIC KEY BELOW
+        (function(){ emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); })();
+    </script>
+
+    <style>
+        /* --- CSS STYLES --- */
+        :root {
+            --bg: #0b1120;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --accent: #3b82f6;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --warning: #f59e0b;
+        }
+
+        body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+
+        /* Login Screen */
+        .login-container { display: flex; height: 100vh; justify-content: center; align-items: center; background: radial-gradient(circle at center, #1e293b 0%, #0b1120 100%); }
+        .login-box { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); padding: 3rem; border-radius: 1rem; border: 1px solid #334155; width: 350px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .logo { font-size: 2rem; color: var(--accent); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; }
+        .input-group { margin-bottom: 1rem; position: relative; }
+        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+        .input-group input { width: 100%; padding: 12px 12px 12px 40px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 6px; box-sizing: border-box; outline: none; transition: 0.3s; }
+        .input-group input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-outline { background: transparent; border: 1px solid #334155; color: var(--muted); }
+        .btn-outline:hover { color: white; border-color: white; }
+        .error-msg { color: var(--danger); font-size: 0.9rem; margin-top: 10px; min-height: 20px; }
+
+        /* Dashboard Layout */
+        .dashboard-container { display: flex; height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar { width: 250px; background: var(--card); border-right: 1px solid #334155; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; font-size: 1.2rem; font-weight: bold; color: var(--accent); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #334155; }
+        .menu { flex: 1; padding: 20px 0; }
+        .menu-item { padding: 15px 25px; cursor: pointer; color: var(--muted); display: flex; align-items: center; gap: 15px; transition: 0.2s; }
+        .menu-item:hover, .menu-item.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); border-right: 3px solid var(--accent); }
+        .user-info { padding: 20px; border-top: 1px solid #334155; }
+        .user-email { font-size: 0.8rem; color: var(--muted); display: block; margin-bottom: 10px; }
+
+        /* Main Content */
+        .main { flex: 1; padding: 2rem; overflow-y: auto; background: var(--bg); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .status-pill { background: rgba(34, 197, 94, 0.1); color: var(--success); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(34, 197, 94, 0.2); }
+        .blink { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+        .card { background: var(--card); border-radius: 12px; padding: 1.5rem; border: 1px solid #334155; position: relative; overflow: hidden; }
+        .card::after { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; }
+        .card.danger::after { background: var(--danger); }
+        .card.info::after { background: var(--accent); }
+        .card.success::after { background: var(--success); }
+        
+        .card-title { color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .card-value { font-size: 2.5rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 15px; }
+        .card-icon { opacity: 0.2; position: absolute; right: 20px; bottom: 20px; font-size: 3rem; }
+
+        /* Table */
+        .table-container { background: var(--card); border-radius: 12px; border: 1px solid #334155; overflow: hidden; }
+        .table-header { padding: 1.5rem; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 1rem 1.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem; border-bottom: 1px solid #334155; }
+        td { padding: 1rem 1.5rem; border-bottom: 1px solid #334155; font-size: 0.95rem; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .badge.blocked { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge.monitored { background: rgba(59, 130, 246, 0.2); color: var(--accent); border: 1px solid rgba(59, 130, 246, 0.3); }
+        .mono { font-family: 'Consolas', monospace; color: #cbd5e1; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div id="login-view" class="login-container fade-in">
+        <div class="login-box">
+            <div class="logo"><i class="fa-solid fa-shield-cat"></i> CyberSOC</div>
+            <p style="color: var(--muted); margin-bottom: 20px;">Threat Intelligence Dashboard</p>
+            
+            <div class="input-group">
+                <i class="fa-solid fa-envelope"></i>
+                <input type="email" id="email" placeholder="Analyst Email">
+            </div>
+            <div class="input-group">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="password" placeholder="Access Key (Password)">
+            </div>
+            
+            <button class="btn btn-primary" onclick="handleLogin()">AUTHENTICATE</button>
+            <button class="btn btn-outline" onclick="handleSignup()">REGISTER NEW AGENT</button>
+            <div id="auth-msg" class="error-msg"></div>
+        </div>
+    </div>
+
+    <div id="dashboard-view" class="dashboard-container hidden fade-in">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fa-solid fa-shield-cat"></i> CyberSOC
+            </div>
+            <div class="menu">
+                <div class="menu-item active"><i class="fa-solid fa-chart-radar"></i> Live Monitor</div>
+                <div class="menu-item"><i class="fa-solid fa-server"></i> Endpoints</div>
+                <div class="menu-item"><i class="fa-solid fa-file-contract"></i> Reports</div>
+            </div>
+            <div class="user-info">
+                <span id="user-display" class="user-email">loading...</span>
+                <button class="btn btn-outline" style="font-size: 0.8rem; padding: 8px;" onclick="handleLogout()">TERMINATE SESSION</button>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="header">
+                <div>
+                    <h2 style="margin: 0;">Security Operations Center</h2>
+                    <p style="margin: 5px 0 0 0; color: var(--muted); font-size: 0.9rem;">Real-time Endpoint Detection & Response (EDR)</p>
+                </div>
+                <div class="status-pill"><span class="blink"></span> SYSTEM ACTIVE</div>
+            </header>
+
+            <div class="stats-grid">
+                <div class="card danger">
+                    <div class="card-title">Threats Mitigated</div>
+                    <div class="card-value" id="stat-threats">0</div>
+                    <i class="fa-solid fa-bug card-icon"></i>
+                </div>
+                <div class="card info">
+                    <div class="card-title">Active Agent OS</div>
+                    <div class="card-value" id="stat-os" style="font-size: 1.5rem;">Waiting...</div>
+                    <i class="fa-solid fa-laptop-code card-icon"></i>
+                </div>
+                <div class="card success">
+                    <div class="card-title">Network Status</div>
+                    <div class="card-value" style="color: var(--success); font-size: 1.5rem;">SECURE</div>
+                    <i class="fa-solid fa-wifi card-icon"></i>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-header">
+                    <h3 style="margin: 0;">Incident Stream</h3>
+                    <button class="btn btn-outline" style="width: auto; padding: 6px 15px; margin: 0;" onclick="clearTable()">Clear Logs</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>TIMESTAMP</th>
+                            <th>OS</th>
+                            <th>SEVERITY</th>
+                            <th>AFFECTED FILE</th>
+                            <th>ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logs-body">
+                        </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } 
+        from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, orderBy, onSnapshot } 
+        from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        // TODO: PASTE YOUR FIREBASE CONFIG HERE
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- AUTH ---
+        window.handleLogin = () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            signInWithEmailAndPassword(auth, e, p).catch(err => showErr(err.message));
+        }
+        window.handleSignup = () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            createUserWithEmailAndPassword(auth, e, p).catch(err => showErr(err.message));
+        }
+        window.handleLogout = () => signOut(auth);
+        
+        function showErr(msg) { document.getElementById('auth-msg').innerText = msg; }
+
+        onAuthStateChanged(auth, (user) => {
+            if(user) {
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('dashboard-view').classList.remove('hidden');
+                document.getElementById('user-display').innerText = user.email;
+                startMonitoring(user.email);
+            } else {
+                document.getElementById('login-view').classList.remove('hidden');
+                document.getElementById('dashboard-view').classList.add('hidden');
+            }
+        });
+
+        // --- MONITORING ---
+        let threatCount = 0;
+
+        function startMonitoring(email) {
+            const q = query(collection(db, "alerts"), where("user_email", "==", email), orderBy("server_time", "desc"));
+            
+            onSnapshot(q, (snapshot) => {
+                const tbody = document.getElementById('logs-body');
+                tbody.innerHTML = ''; 
+                threatCount = 0;
+                let lastOS = "Unknown";
+
+                if(snapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--muted)">No incidents detected. Waiting for agent...</td></tr>';
+                }
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if(data.os) lastOS = data.os;
+                    if(data.event === "RANSOMWARE_BLOCKED") threatCount++;
+                    
+                    const isThreat = data.event === "RANSOMWARE_BLOCKED";
+                    const badgeClass = isThreat ? "blocked" : "monitored";
+                    const badgeText = isThreat ? "CRITICAL" : "INFO";
+                    const actionText = isThreat ? "🛑 ATTACK BLOCKED" : "👀 LOGGED";
+
+                    const row = `
+                        <tr>
+                            <td class="mono">${new Date(data.server_time).toLocaleTimeString()}</td>
+                            <td>${getOSIcon(data.os)}</td>
+                            <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                            <td class="mono" style="color: ${isThreat ? '#ef4444' : '#cbd5e1'}">${data.file}</td>
+                            <td>${actionText}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+
+                document.getElementById('stat-threats').innerText = threatCount;
+                document.getElementById('stat-os').innerHTML = getOSIcon(lastOS) + " " + lastOS;
+            });
+        }
+
+        function getOSIcon(os) {
+            if(!os) return '<i class="fa-solid fa-question"></i>';
+            if(os.includes("Win")) return '<i class="fa-brands fa-windows"></i>';
+            if(os.includes("Linux")) return '<i class="fa-brands fa-linux"></i>';
+            if(os.includes("Darwin") || os.includes("Mac")) return '<i class="fa-brands fa-apple"></i>';
+            return os;
+        }
+
+        window.clearTable = () => document.getElementById('logs-body').innerHTML = '';
+    </script>
+</body>
+</html>
