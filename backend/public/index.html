@@ -3,179 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberSOC | Threat Monitor</title>
+    <title>CyberSOC | Enterprise Defense</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script>
-        // TODO: PASTE YOUR EMAILJS PUBLIC KEY BELOW
+        // TODO: PASTE YOUR EMAILJS PUBLIC KEY HERE
         (function(){ emailjs.init("VYh5Cw0YPvRNIIgXb"); })();
     </script>
 
     <style>
-        /* --- CSS STYLES --- */
         :root {
-            --bg: #0b1120;
+            --bg: #0f172a;
+            --sidebar: #1e293b;
             --card: #1e293b;
-            --text: #f8fafc;
+            --text: #f1f5f9;
             --muted: #94a3b8;
             --accent: #3b82f6;
             --danger: #ef4444;
             --success: #22c55e;
             --warning: #f59e0b;
         }
-
         body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
         .hidden { display: none !important; }
-        .fade-in { animation: fadeIn 0.5s ease-out; }
-
-        /* Login Screen */
-        .login-container { display: flex; height: 100vh; justify-content: center; align-items: center; background: radial-gradient(circle at center, #1e293b 0%, #0b1120 100%); }
-        .login-box { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); padding: 3rem; border-radius: 1rem; border: 1px solid #334155; width: 350px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .logo { font-size: 2rem; color: var(--accent); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; }
-        .input-group { margin-bottom: 1rem; position: relative; }
-        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--muted); }
-        .input-group input { width: 100%; padding: 12px 12px 12px 40px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 6px; box-sizing: border-box; outline: none; transition: 0.3s; }
-        .input-group input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
+        
+        /* AUTH SCREEN */
+        #auth-view { height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at top, #1e293b, #0f172a); }
+        .auth-card { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(10px); padding: 2.5rem; border-radius: 1rem; border: 1px solid #334155; width: 350px; text-align: center; }
+        .logo { font-size: 1.8rem; font-weight: 800; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 6px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.2s; }
         .btn-primary { background: var(--accent); color: white; }
         .btn-primary:hover { background: #2563eb; }
         .btn-outline { background: transparent; border: 1px solid #334155; color: var(--muted); }
-        .btn-outline:hover { color: white; border-color: white; }
-        .error-msg { color: var(--danger); font-size: 0.9rem; margin-top: 10px; min-height: 20px; }
+        .btn-outline:hover { border-color: white; color: white; }
 
-        /* Dashboard Layout */
-        .dashboard-container { display: flex; height: 100vh; }
-        
-        /* Sidebar */
-        .sidebar { width: 250px; background: var(--card); border-right: 1px solid #334155; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 20px; font-size: 1.2rem; font-weight: bold; color: var(--accent); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #334155; }
-        .menu { flex: 1; padding: 20px 0; }
-        .menu-item { padding: 15px 25px; cursor: pointer; color: var(--muted); display: flex; align-items: center; gap: 15px; transition: 0.2s; }
-        .menu-item:hover, .menu-item.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); border-right: 3px solid var(--accent); }
-        .user-info { padding: 20px; border-top: 1px solid #334155; }
-        .user-email { font-size: 0.8rem; color: var(--muted); display: block; margin-bottom: 10px; }
+        /* DASHBOARD LAYOUT */
+        #dashboard-view { display: flex; height: 100vh; }
+        .sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid #334155; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; font-size: 1.2rem; font-weight: bold; color: var(--accent); border-bottom: 1px solid #334155; display: flex; align-items: center; gap: 10px; }
+        .nav-menu { flex: 1; padding: 20px 0; }
+        .nav-item { padding: 15px 25px; cursor: pointer; color: var(--muted); display: flex; align-items: center; gap: 12px; transition: 0.2s; border-left: 3px solid transparent; }
+        .nav-item:hover, .nav-item.active { background: rgba(59, 130, 246, 0.1); color: var(--text); border-left-color: var(--accent); }
+        .user-panel { padding: 20px; border-top: 1px solid #334155; }
 
-        /* Main Content */
-        .main { flex: 1; padding: 2rem; overflow-y: auto; background: var(--bg); }
+        /* MAIN CONTENT AREA */
+        .main-content { flex: 1; padding: 2rem; overflow-y: auto; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .status-pill { background: rgba(34, 197, 94, 0.1); color: var(--success); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(34, 197, 94, 0.2); }
-        .blink { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
+        .view-section { animation: fadeIn 0.3s ease-out; }
 
-        /* Stats Grid */
+        /* CARDS & TABLES */
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
-        .card { background: var(--card); border-radius: 12px; padding: 1.5rem; border: 1px solid #334155; position: relative; overflow: hidden; }
-        .card::after { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; }
-        .card.danger::after { background: var(--danger); }
-        .card.info::after { background: var(--accent); }
-        .card.success::after { background: var(--success); }
+        .card { background: var(--card); border: 1px solid #334155; border-radius: 12px; padding: 1.5rem; position: relative; }
+        .card h3 { margin: 0 0 10px 0; color: var(--muted); font-size: 0.85rem; text-transform: uppercase; }
+        .card .value { font-size: 2.5rem; font-weight: 700; }
         
-        .card-title { color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-        .card-value { font-size: 2.5rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 15px; }
-        .card-icon { opacity: 0.2; position: absolute; right: 20px; bottom: 20px; font-size: 3rem; }
-
-        /* Table */
-        .table-container { background: var(--card); border-radius: 12px; border: 1px solid #334155; overflow: hidden; }
-        .table-header { padding: 1.5rem; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        .table-box { background: var(--card); border: 1px solid #334155; border-radius: 12px; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 1rem 1.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem; border-bottom: 1px solid #334155; }
-        td { padding: 1rem 1.5rem; border-bottom: 1px solid #334155; font-size: 0.95rem; }
-        tr:last-child td { border-bottom: none; }
-        tr:hover { background: rgba(255,255,255,0.02); }
-        
-        .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-        .badge.blocked { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
-        .badge.monitored { background: rgba(59, 130, 246, 0.2); color: var(--accent); border: 1px solid rgba(59, 130, 246, 0.3); }
-        .mono { font-family: 'Consolas', monospace; color: #cbd5e1; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #334155; }
+        th { background: rgba(0,0,0,0.2); color: var(--muted); font-size: 0.85rem; }
+        .badge { padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+        .badge-red { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+        .badge-blue { background: rgba(59, 130, 246, 0.2); color: var(--accent); border: 1px solid var(--accent); }
 
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* DOWNLOAD BUTTON STYLE */
+        .download-box { border: 2px dashed #334155; padding: 30px; text-align: center; border-radius: 12px; margin-top: 20px; }
+        .download-box:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.05); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div id="login-view" class="login-container fade-in">
-        <div class="login-box">
-            <div class="logo"><i class="fa-solid fa-shield-cat"></i> CyberSOC</div>
-            <p style="color: var(--muted); margin-bottom: 20px;">Threat Intelligence Dashboard</p>
+    <div id="auth-view">
+        <div class="auth-card">
+            <div class="logo"><i class="fa-solid fa-shield-halved"></i> CyberSOC</div>
+            <p style="color:var(--muted); margin-bottom:20px;">Secure Analyst Login</p>
             
-            <div class="input-group">
-                <i class="fa-solid fa-envelope"></i>
-                <input type="email" id="email" placeholder="Analyst Email">
-            </div>
-            <div class="input-group">
-                <i class="fa-solid fa-lock"></i>
-                <input type="password" id="password" placeholder="Access Key (Password)">
-            </div>
+            <input type="email" id="email" placeholder="Analyst Email">
+            <input type="password" id="password" placeholder="Password">
             
-            <button class="btn btn-primary" onclick="handleLogin()">AUTHENTICATE</button>
-            <button class="btn btn-outline" onclick="handleSignup()">REGISTER NEW AGENT</button>
-            <div id="auth-msg" class="error-msg"></div>
+            <button class="btn btn-primary" onclick="handleAuth()">LOGIN / REGISTER</button>
+            <p id="auth-msg" style="color: var(--danger); margin-top:15px; font-size:0.9rem;"></p>
         </div>
     </div>
 
-    <div id="dashboard-view" class="dashboard-container hidden fade-in">
+    <div id="dashboard-view" class="hidden">
         <aside class="sidebar">
-            <div class="sidebar-header">
-                <i class="fa-solid fa-shield-cat"></i> CyberSOC
-            </div>
-            <div class="menu">
-                <div class="menu-item active"><i class="fa-solid fa-chart-radar"></i> Live Monitor</div>
-                <div class="menu-item"><i class="fa-solid fa-server"></i> Endpoints</div>
-                <div class="menu-item"><i class="fa-solid fa-file-contract"></i> Reports</div>
-            </div>
-            <div class="user-info">
-                <span id="user-display" class="user-email">loading...</span>
-                <button class="btn btn-outline" style="font-size: 0.8rem; padding: 8px;" onclick="handleLogout()">TERMINATE SESSION</button>
+            <div class="sidebar-header"><i class="fa-solid fa-shield-halved"></i> CyberSOC</div>
+            <nav class="nav-menu">
+                <div class="nav-item active" onclick="switchTab('monitor')"><i class="fa-solid fa-radar"></i> Live Monitor</div>
+                <div class="nav-item" onclick="switchTab('endpoints')"><i class="fa-solid fa-server"></i> Endpoints</div>
+                <div class="nav-item" onclick="switchTab('reports')"><i class="fa-solid fa-file-contract"></i> Reports</div>
+            </nav>
+            <div class="user-panel">
+                <div style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;" id="user-display">Loading...</div>
+                <button class="btn btn-outline" style="padding:8px; font-size:0.8rem;" onclick="handleLogout()">LOGOUT</button>
             </div>
         </aside>
 
-        <main class="main">
-            <header class="header">
-                <div>
-                    <h2 style="margin: 0;">Security Operations Center</h2>
-                    <p style="margin: 5px 0 0 0; color: var(--muted); font-size: 0.9rem;">Real-time Endpoint Detection & Response (EDR)</p>
-                </div>
-                <div class="status-pill"><span class="blink"></span> SYSTEM ACTIVE</div>
-            </header>
+        <main class="main-content">
+            
+            <div id="tab-monitor" class="view-section">
+                <header class="header">
+                    <h2><i class="fa-solid fa-radar"></i> Threat Monitor</h2>
+                    <div style="color:var(--success); font-weight:bold;"><i class="fa-solid fa-circle fa-beat-fade"></i> SYSTEM ACTIVE</div>
+                </header>
 
-            <div class="stats-grid">
-                <div class="card danger">
-                    <div class="card-title">Threats Mitigated</div>
-                    <div class="card-value" id="stat-threats">0</div>
-                    <i class="fa-solid fa-bug card-icon"></i>
+                <div class="stats-grid">
+                    <div class="card" style="border-top:4px solid var(--danger)">
+                        <h3>Attacks Blocked</h3>
+                        <div class="value" id="stat-blocked">0</div>
+                    </div>
+                    <div class="card" style="border-top:4px solid var(--accent)">
+                        <h3>Total Events</h3>
+                        <div class="value" id="stat-total">0</div>
+                    </div>
+                    <div class="card" style="border-top:4px solid var(--success)">
+                        <h3>System Health</h3>
+                        <div class="value" style="font-size:1.5rem; margin-top:10px; color:var(--success)">OPTIMAL</div>
+                    </div>
                 </div>
-                <div class="card info">
-                    <div class="card-title">Active Agent OS</div>
-                    <div class="card-value" id="stat-os" style="font-size: 1.5rem;">Waiting...</div>
-                    <i class="fa-solid fa-laptop-code card-icon"></i>
-                </div>
-                <div class="card success">
-                    <div class="card-title">Network Status</div>
-                    <div class="card-value" style="color: var(--success); font-size: 1.5rem;">SECURE</div>
-                    <i class="fa-solid fa-wifi card-icon"></i>
+
+                <div class="table-box">
+                    <div style="padding:15px; border-bottom:1px solid #334155; display:flex; justify-content:space-between;">
+                        <h3 style="margin:0;">Incident Log</h3>
+                        <button onclick="clearLogs()" style="background:none; border:none; color:var(--muted); cursor:pointer;">Clear History</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr><th>TIME</th><th>OS</th><th>SEVERITY</th><th>FILE PATH</th><th>STATUS</th></tr>
+                        </thead>
+                        <tbody id="logs-body">
+                            </tbody>
+                    </table>
                 </div>
             </div>
 
-            <div class="table-container">
-                <div class="table-header">
-                    <h3 style="margin: 0;">Incident Stream</h3>
-                    <button class="btn btn-outline" style="width: auto; padding: 6px 15px; margin: 0;" onclick="clearTable()">Clear Logs</button>
+            <div id="tab-endpoints" class="view-section hidden">
+                <header class="header"><h2><i class="fa-solid fa-server"></i> Managed Endpoints</h2></header>
+                
+                <div class="card">
+                    <h3>Deploy New Agent</h3>
+                    <p style="color:var(--muted)">Download the universal Python agent to monitor a new device.</p>
+                    
+                    <div class="download-box">
+                        <i class="fa-brands fa-python" style="font-size:3rem; color:var(--accent); margin-bottom:15px;"></i><br>
+                        <strong>universal_agent.py</strong><br>
+                        <span style="font-size:0.8rem; color:var(--muted);">v2.4 | Windows, Linux, macOS Support</span><br><br>
+                        <a href="agent.py" download="universal_agent.py" class="btn btn-primary" style="width:auto; display:inline-block; text-decoration:none;">
+                            <i class="fa-solid fa-download"></i> DOWNLOAD AGENT
+                        </a>
+                    </div>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>TIMESTAMP</th>
-                            <th>OS</th>
-                            <th>SEVERITY</th>
-                            <th>AFFECTED FILE</th>
-                            <th>ACTION</th>
-                        </tr>
-                    </thead>
-                    <tbody id="logs-body">
-                        </tbody>
-                </table>
             </div>
+
+            <div id="tab-reports" class="view-section hidden">
+                <header class="header"><h2><i class="fa-solid fa-file-contract"></i> Security Reports</h2></header>
+                
+                <div class="stats-grid">
+                    <div class="card">
+                        <h3>Most Attacked OS</h3>
+                        <div class="value" id="rep-os" style="font-size:1.5rem;">Analyzing...</div>
+                    </div>
+                    <div class="card">
+                        <h3>Last Incident</h3>
+                        <div class="value" id="rep-time" style="font-size:1rem; margin-top:12px;">None</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Executive Summary</h3>
+                    <p id="rep-summary" style="line-height:1.6; color:var(--muted);">
+                        No data available for analysis. Deploy agent to generate report.
+                    </p>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -193,7 +197,7 @@
             projectId: "cybermonitor-1ab3c",
             storageBucket: "cybermonitor-1ab3c.firebasestorage.app",
             messagingSenderId: "569408987884",
-            appId: "1:569408987884:web:0839eb7932c206fc157bc9"
+            appId: "569408987884:web:0839eb7932c206fc157bc9"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -201,84 +205,108 @@
         const db = getFirestore(app);
 
         // --- AUTH ---
-        window.handleLogin = () => {
-            const e = document.getElementById('email').value;
+        window.handleAuth = () => {
+            const e = document.getElementById('email').value.trim(); // FIX: Trim spaces
             const p = document.getElementById('password').value;
-            signInWithEmailAndPassword(auth, e, p).catch(err => showErr(err.message));
-        }
-        window.handleSignup = () => {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('password').value;
-            createUserWithEmailAndPassword(auth, e, p).catch(err => showErr(err.message));
+            
+            if(!e || !p) { document.getElementById('auth-msg').innerText = "Enter Email & Password"; return; }
+
+            // Try Login first, if fails, try Register
+            signInWithEmailAndPassword(auth, e, p)
+                .catch((err) => {
+                    if(err.code === 'auth/user-not-found') {
+                        // User doesn't exist? Create them automatically!
+                        createUserWithEmailAndPassword(auth, e, p)
+                            .then(() => alert("New Account Created!"))
+                            .catch(e => document.getElementById('auth-msg').innerText = e.message);
+                    } else {
+                        document.getElementById('auth-msg').innerText = err.message;
+                    }
+                });
         }
         window.handleLogout = () => signOut(auth);
-        
-        function showErr(msg) { document.getElementById('auth-msg').innerText = msg; }
 
+        // --- UI SWITCHING ---
         onAuthStateChanged(auth, (user) => {
             if(user) {
-                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('auth-view').classList.add('hidden');
                 document.getElementById('dashboard-view').classList.remove('hidden');
                 document.getElementById('user-display').innerText = user.email;
-                startMonitoring(user.email);
+                startDataStream(user.email);
             } else {
-                document.getElementById('login-view').classList.remove('hidden');
+                document.getElementById('auth-view').classList.remove('hidden');
                 document.getElementById('dashboard-view').classList.add('hidden');
             }
         });
 
-        // --- MONITORING ---
-        let threatCount = 0;
+        window.switchTab = (tabName) => {
+            // Hide all tabs
+            ['monitor', 'endpoints', 'reports'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden'));
+            // Remove active class from nav
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            // Show selected
+            document.getElementById('tab-'+tabName).classList.remove('hidden');
+            // Highlight nav (simple find)
+            event.currentTarget.classList.add('active');
+        }
 
-        function startMonitoring(email) {
+        // --- DATA LOGIC ---
+        function startDataStream(email) {
             const q = query(collection(db, "alerts"), where("user_email", "==", email), orderBy("server_time", "desc"));
             
             onSnapshot(q, (snapshot) => {
                 const tbody = document.getElementById('logs-body');
                 tbody.innerHTML = ''; 
-                threatCount = 0;
-                let lastOS = "Unknown";
+                
+                let blocked = 0;
+                let total = 0;
+                let osCounts = {};
+                let lastTime = "None";
 
                 if(snapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--muted)">No incidents detected. Waiting for agent...</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b">No incidents logged.</td></tr>';
                 }
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    if(data.os) lastOS = data.os;
-                    if(data.event === "RANSOMWARE_BLOCKED") threatCount++;
+                    total++;
+                    if(data.event === "RANSOMWARE_BLOCKED") blocked++;
                     
-                    const isThreat = data.event === "RANSOMWARE_BLOCKED";
-                    const badgeClass = isThreat ? "blocked" : "monitored";
-                    const badgeText = isThreat ? "CRITICAL" : "INFO";
-                    const actionText = isThreat ? "🛑 ATTACK BLOCKED" : "👀 LOGGED";
+                    // Count OS for Report
+                    const os = data.os || "Unknown";
+                    osCounts[os] = (osCounts[os] || 0) + 1;
+                    if(total === 1) lastTime = new Date(data.server_time).toLocaleString();
 
-                    const row = `
-                        <tr>
-                            <td class="mono">${new Date(data.server_time).toLocaleTimeString()}</td>
-                            <td>${getOSIcon(data.os)}</td>
-                            <td><span class="badge ${badgeClass}">${badgeText}</span></td>
-                            <td class="mono" style="color: ${isThreat ? '#ef4444' : '#cbd5e1'}">${data.file}</td>
-                            <td>${actionText}</td>
-                        </tr>
-                    `;
+                    // Render Row
+                    const isCrit = data.event === "RANSOMWARE_BLOCKED";
+                    const row = `<tr>
+                        <td style="color:#cbd5e1; font-family:monospace;">${new Date(data.server_time).toLocaleTimeString()}</td>
+                        <td>${os}</td>
+                        <td><span class="badge ${isCrit ? 'badge-red' : 'badge-blue'}">${isCrit ? 'CRITICAL' : 'INFO'}</span></td>
+                        <td style="color:#94a3b8; font-family:monospace;">${data.file}</td>
+                        <td>${isCrit ? '🛑 BLOCKED' : '👀 LOGGED'}</td>
+                    </tr>`;
                     tbody.innerHTML += row;
                 });
 
-                document.getElementById('stat-threats').innerText = threatCount;
-                document.getElementById('stat-os').innerHTML = getOSIcon(lastOS) + " " + lastOS;
+                // Update Monitor Stats
+                document.getElementById('stat-blocked').innerText = blocked;
+                document.getElementById('stat-total').innerText = total;
+
+                // Update Reports
+                const topOS = Object.keys(osCounts).reduce((a, b) => osCounts[a] > osCounts[b] ? a : b, "None");
+                document.getElementById('rep-os').innerText = topOS;
+                document.getElementById('rep-time').innerText = lastTime;
+                
+                if(total > 0) {
+                    document.getElementById('rep-summary').innerText = 
+                        `System analysis complete. Detected ${total} total events with ${blocked} confirmed ransomware attempts. Primary target OS is ${topOS}. Recommendation: Maintain honeypot protocols.`;
+                }
             });
         }
-
-        function getOSIcon(os) {
-            if(!os) return '<i class="fa-solid fa-question"></i>';
-            if(os.includes("Win")) return '<i class="fa-brands fa-windows"></i>';
-            if(os.includes("Linux")) return '<i class="fa-brands fa-linux"></i>';
-            if(os.includes("Darwin") || os.includes("Mac")) return '<i class="fa-brands fa-apple"></i>';
-            return os;
-        }
-
-        window.clearTable = () => document.getElementById('logs-body').innerHTML = '';
+        
+        window.clearLogs = () => document.getElementById('logs-body').innerHTML = '';
     </script>
 </body>
 </html>
