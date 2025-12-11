@@ -10,27 +10,21 @@
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script>
-        // OPTIONAL: PASTE EMAILJS KEY HERE IF YOU WANT EMAIL ALERTS
-        (function(){ emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); })();
+        // OPTIONAL: Paste EmailJS Key here if you want email alerts
+        (function(){ emailjs.init("VYh5Cw0YPvRNIIgXb"); })();
     </script>
 
     <style>
+        /* --- PROFESSIONAL CYBER THEME --- */
         :root {
-            --bg: #0f172a;
-            --sidebar: #020617;
-            --card: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --danger: #ef4444;
-            --success: #22c55e;
-            --border: #334155;
+            --bg: #0f172a; --sidebar: #020617; --card: #1e293b;
+            --text-main: #f8fafc; --text-muted: #94a3b8;
+            --accent: #3b82f6; --accent-hover: #2563eb;
+            --danger: #ef4444; --success: #22c55e; --border: #334155;
         }
 
         * { box-sizing: border-box; }
         body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); height: 100vh; overflow: hidden; }
-        
         .hidden { display: none !important; }
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -46,29 +40,27 @@
             width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
         .logo { font-size: 2rem; font-weight: 800; color: var(--accent); margin-bottom: 0.5rem; letter-spacing: -1px; }
-        .logo i { margin-right: 10px; }
         
         input {
             width: 100%; padding: 14px; margin: 8px 0; background: #020617;
             border: 1px solid var(--border); color: white; border-radius: 8px;
-            font-size: 1rem; transition: 0.2s; outline: none;
+            font-size: 1rem; outline: none; transition: 0.2s;
         }
         input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
         
         .btn {
-            width: 100%; padding: 14px; border: none; border-radius: 8px;
-            cursor: pointer; font-weight: 600; font-size: 1rem; margin-top: 15px;
+            width: 100%; padding: 12px; border: none; border-radius: 8px;
+            cursor: pointer; font-weight: 600; font-size: 1rem; margin-top: 10px;
             transition: all 0.2s;
         }
         .btn-primary { background: var(--accent); color: white; }
         .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
-        .btn-outline:hover { border-color: var(--text-main); color: var(--text-main); }
+        .btn-outline:hover { border-color: var(--text-main); color: var(--text-main); background: rgba(255,255,255,0.05); }
 
-        /* === DASHBOARD LAYOUT === */
+        /* === DASHBOARD === */
         #dashboard-view { display: flex; height: 100vh; }
         
-        /* Sidebar */
         .sidebar {
             width: 280px; background: var(--sidebar); border-right: 1px solid var(--border);
             display: flex; flex-direction: column; padding: 20px 0;
@@ -85,20 +77,15 @@
         .nav-item.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); border-left-color: var(--accent); }
         
         .user-panel { margin-top: auto; padding: 24px; border-top: 1px solid var(--border); }
-        .user-email { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Main Content */
         .main-content { flex: 1; padding: 2rem; overflow-y: auto; background: var(--bg); }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
-        .header h2 { margin: 0; font-weight: 600; font-size: 1.5rem; }
-        .status-pill { background: rgba(34, 197, 94, 0.15); color: var(--success); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; border: 1px solid rgba(34, 197, 94, 0.2); }
-
-        /* Stats Cards */
+        
+        /* Stats */
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; position: relative; overflow: hidden; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; position: relative; }
         .card h3 { margin: 0 0 10px 0; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
         .card .value { font-size: 2.5rem; font-weight: 700; color: var(--text-main); }
-        .card-icon { position: absolute; right: 20px; bottom: 20px; font-size: 3rem; opacity: 0.1; }
 
         /* Table */
         .table-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
@@ -106,21 +93,17 @@
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 1rem 1.5rem; color: var(--text-muted); font-weight: 600; font-size: 0.85rem; background: rgba(0,0,0,0.2); }
         td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); color: var(--text-main); font-size: 0.95rem; }
-        tr:last-child td { border-bottom: none; }
         
-        /* Badges */
-        .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; }
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
         .badge.blocked { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
         .badge.info { background: rgba(59, 130, 246, 0.2); color: var(--accent); border: 1px solid var(--accent); }
         .mono { font-family: 'Consolas', monospace; color: #cbd5e1; }
 
-        /* Download Box */
         .download-zone {
             border: 2px dashed var(--border); border-radius: 12px; padding: 3rem; text-align: center;
-            transition: 0.2s; background: rgba(255,255,255,0.01);
+            transition: 0.2s; background: rgba(255,255,255,0.01); margin-top: 20px;
         }
         .download-zone:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.05); }
-
     </style>
 </head>
 <body>
@@ -133,11 +116,10 @@
             <input type="email" id="email" placeholder="Analyst Email">
             <input type="password" id="password" placeholder="Access Key (Password)">
             
-            <button class="btn btn-primary" onclick="handleAuth()">SECURE LOGIN</button>
+            <button class="btn btn-primary" onclick="handleLogin()">SECURE LOGIN</button>
+            <button class="btn btn-outline" onclick="handleRegister()">REGISTER NEW ACCOUNT</button>
+            
             <p id="auth-msg" style="color: var(--danger); margin-top:15px; font-size:0.9rem; min-height: 20px;"></p>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 20px;">
-                Note: If account doesn't exist, it will be created automatically.
-            </p>
         </div>
     </div>
 
@@ -150,8 +132,8 @@
                 <div id="nav-reports" class="nav-item" onclick="switchTab('reports')"><i class="fa-solid fa-file-contract"></i> Reports</div>
             </nav>
             <div class="user-panel">
-                <span id="user-display" class="user-email">Connecting...</span>
-                <button class="btn btn-outline" style="padding: 8px; font-size: 0.8rem;" onclick="handleLogout()">TERMINATE SESSION</button>
+                <span id="user-display" style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:10px;">Connecting...</span>
+                <button class="btn btn-outline" style="padding: 8px; font-size: 0.8rem;" onclick="handleLogout()">LOGOUT</button>
             </div>
         </aside>
 
@@ -159,24 +141,23 @@
             <div id="tab-monitor">
                 <header class="header">
                     <h2>Threat Intelligence</h2>
-                    <div class="status-pill"><i class="fa-solid fa-circle fa-beat-fade"></i> LIVE</div>
+                    <div style="color:var(--success); font-weight:700; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-circle fa-beat-fade"></i> SYSTEM ACTIVE
+                    </div>
                 </header>
                 
                 <div class="stats-grid">
                     <div class="card" style="border-top: 4px solid var(--danger);">
                         <h3>Attacks Mitigated</h3>
                         <div class="value" id="stat-blocked">0</div>
-                        <i class="fa-solid fa-ban card-icon"></i>
                     </div>
                     <div class="card" style="border-top: 4px solid var(--accent);">
                         <h3>Total Events</h3>
                         <div class="value" id="stat-total">0</div>
-                        <i class="fa-solid fa-list card-icon"></i>
                     </div>
                     <div class="card" style="border-top: 4px solid var(--success);">
-                        <h3>Network Status</h3>
-                        <div class="value" style="color:var(--success); font-size:2rem; margin-top:5px;">SECURE</div>
-                        <i class="fa-solid fa-wifi card-icon"></i>
+                        <h3>System Health</h3>
+                        <div class="value" style="color:var(--success); font-size:2rem; margin-top:5px;">OPTIMAL</div>
                     </div>
                 </div>
 
@@ -186,55 +167,36 @@
                         <button onclick="clearLogs()" class="btn btn-outline" style="width:auto; padding:8px 16px; margin:0;">Clear History</button>
                     </div>
                     <table>
-                        <thead>
-                            <tr><th>TIMESTAMP</th><th>OS</th><th>SEVERITY</th><th>FILE PATH</th><th>STATUS</th></tr>
-                        </thead>
-                        <tbody id="logs-body">
-                            </tbody>
+                        <thead><tr><th>TIMESTAMP</th><th>OS</th><th>SEVERITY</th><th>FILE PATH</th><th>STATUS</th></tr></thead>
+                        <tbody id="logs-body"></tbody>
                     </table>
                 </div>
             </div>
 
             <div id="tab-endpoints" class="hidden">
                 <header class="header"><h2>Managed Endpoints</h2></header>
-                
                 <div class="card">
-                    <h3 style="font-size:1.1rem; color:var(--text-main); margin-bottom:10px;">Deploy New Security Agent</h3>
-                    <p style="color:var(--text-muted); margin-bottom:20px;">
-                        Download the universal Python agent script. This script automatically detects the OS (Windows/Linux/Mac), installs required dependencies, and sets up the active honeypot defense.
-                    </p>
+                    <h3 style="font-size:1.1rem; color:var(--text-main); margin-bottom:10px;">Deploy Security Agent</h3>
+                    <p style="color:var(--text-muted);">Download the intelligent Python agent. This script automatically detects the OS (Windows/Linux/Mac) and deploys active honeypots.</p>
                     
                     <div class="download-zone">
                         <i class="fa-brands fa-python" style="font-size:4rem; color:var(--accent); margin-bottom:15px;"></i><br>
                         <strong style="font-size:1.2rem;">universal_agent.py</strong><br>
-                        <div style="color:var(--text-muted); font-size:0.9rem; margin-bottom:20px;">Version 2.5 (Stable) • Auto-Configured</div>
-                        
-                        <button onclick="downloadAgent()" class="btn btn-primary" style="width:auto; padding: 12px 30px;">
-                            <i class="fa-solid fa-download"></i> DOWNLOAD CONFIGURED AGENT
-                        </button>
+                        <div style="color:var(--text-muted); font-size:0.9rem; margin-bottom:20px;">v2.5 (Stable) • Auto-Configured</div>
+                        <button onclick="downloadAgent()" class="btn btn-primary" style="width:auto; padding: 12px 30px;"><i class="fa-solid fa-download"></i> DOWNLOAD AGENT</button>
                     </div>
                 </div>
             </div>
 
             <div id="tab-reports" class="hidden">
-                <header class="header"><h2>System Reports</h2></header>
-                
+                <header class="header"><h2>Security Reports</h2></header>
                 <div class="stats-grid">
-                    <div class="card">
-                        <h3>Most Targeted OS</h3>
-                        <div class="value" id="rep-os" style="font-size:1.8rem;">Analyzing...</div>
-                    </div>
-                    <div class="card">
-                        <h3>Last Incident Detected</h3>
-                        <div class="value" id="rep-time" style="font-size:1.2rem; margin-top:10px;">None</div>
-                    </div>
+                    <div class="card"><h3>Most Targeted OS</h3><div class="value" id="rep-os" style="font-size:1.8rem;">Analyzing...</div></div>
+                    <div class="card"><h3>Last Incident</h3><div class="value" id="rep-time" style="font-size:1.2rem; margin-top:10px;">None</div></div>
                 </div>
-                
                 <div class="card">
-                    <h3>AI Executive Summary</h3>
-                    <p id="rep-summary" style="line-height:1.6; color:var(--text-muted);">
-                        Waiting for data stream to generate analysis...
-                    </p>
+                    <h3>Executive Summary</h3>
+                    <p id="rep-summary" style="line-height:1.6; color:var(--text-muted);">Waiting for data stream to generate analysis...</p>
                 </div>
             </div>
         </main>
@@ -245,77 +207,65 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
         import { getFirestore, collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-        // ==========================================
-        // TODO: PASTE YOUR FIREBASE CONFIG KEYS HERE
-        // ==========================================
+        // ================================================
+        // ⚠️ PASTE YOUR FIREBASE KEYS BELOW ⚠️
+        // ================================================
         const firebaseConfig = {
-            apiKey: "AIzaSy...",
-            authDomain: "...",
-            projectId: "...",
-            storageBucket: "...",
-            messagingSenderId: "...",
-            appId: "..."
+            apiKey: "AIzaSyCIY6AiBsGrq7wM0BBYGW2lM_0FLWjnH0k",
+            authDomain: "cybermonitor-1ab3c.firebaseapp.com",
+            projectId: "cybermonitor-1ab3c",
+            storageBucket: "cybermonitor-1ab3c.firebasestorage.app",
+            messagingSenderId: "569408987884",
+            appId: "1:569408987884:web:0839eb7932c206fc157bc9"
         };
 
-        // Initialize Firebase
+        // Init Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- AUTHENTICATION ---
-        window.handleAuth = () => {
+        // --- AUTH HANDLERS ---
+        window.handleLogin = () => {
             const e = document.getElementById('email').value.trim();
             const p = document.getElementById('password').value;
-            const msg = document.getElementById('auth-msg');
+            if(!e || !p) { document.getElementById('auth-msg').innerText = "Please enter credentials."; return; }
 
-            if(!e || !p) { msg.innerText = "Please enter both Email & Password."; return; }
-
-            // Try Login first
             signInWithEmailAndPassword(auth, e, p)
-                .catch((err) => {
-                    if (err.code === 'auth/user-not-found') {
-                        // User not found? Auto-Register them!
-                        createUserWithEmailAndPassword(auth, e, p)
-                            .then(() => alert("Account Created! Logging in..."))
-                            .catch(regErr => msg.innerText = regErr.message);
-                    } else if (err.code === 'auth/wrong-password') {
-                        msg.innerText = "Incorrect Password.";
-                    } else {
-                        msg.innerText = err.message;
-                    }
-                });
+                .catch(err => document.getElementById('auth-msg').innerText = "Login Failed: " + err.message);
+        }
+
+        window.handleRegister = () => {
+            const e = document.getElementById('email').value.trim();
+            const p = document.getElementById('password').value;
+            if(!e || !p) { document.getElementById('auth-msg').innerText = "Please enter credentials."; return; }
+
+            createUserWithEmailAndPassword(auth, e, p)
+                .then(() => alert("Account Created Successfully! Please Login."))
+                .catch(err => document.getElementById('auth-msg').innerText = err.message);
         }
 
         window.handleLogout = () => signOut(auth);
 
-        // --- UI STATE MANAGEMENT ---
+        // --- UI STATE ---
         onAuthStateChanged(auth, (user) => {
             if(user) {
-                // Show Dashboard
                 document.getElementById('auth-view').classList.add('hidden');
                 document.getElementById('dashboard-view').classList.remove('hidden');
-                
-                // Set User Data
                 document.getElementById('user-display').innerText = user.email;
-                window.currentUserEmail = user.email; // Save for download script
-                
-                // Start Listening to DB
+                window.currentUserEmail = user.email;
                 startDataStream(user.email);
             } else {
-                // Show Login
                 document.getElementById('auth-view').classList.remove('hidden');
                 document.getElementById('dashboard-view').classList.add('hidden');
             }
         });
 
-        // Tab Switching Logic
+        // --- TABS ---
         window.switchTab = (tabName) => {
-            // Hide all tabs
             ['monitor', 'endpoints', 'reports'].forEach(t => {
                 document.getElementById('tab-' + t).classList.add('hidden');
                 document.getElementById('nav-' + t).classList.remove('active');
             });
-            // Show selected
             document.getElementById('tab-' + tabName).classList.remove('hidden');
             document.getElementById('nav-' + tabName).classList.add('active');
         }
@@ -323,84 +273,61 @@
         // --- DATA STREAM ---
         function startDataStream(email) {
             const q = query(collection(db, "alerts"), where("user_email", "==", email), orderBy("server_time", "desc"));
-            
             onSnapshot(q, (snapshot) => {
                 const tbody = document.getElementById('logs-body');
                 tbody.innerHTML = '';
-                
-                let blocked = 0, total = 0, osMap = {};
-                let lastTime = "None";
+                let blocked = 0, total = 0, osMap = {}, lastTime = "None";
 
-                if(snapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--text-muted)">No threats detected. Agent is listening...</td></tr>';
-                }
+                if(snapshot.empty) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--text-muted)">No threats detected. System secure.</td></tr>';
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     total++;
                     if(data.event === "RANSOMWARE_BLOCKED") blocked++;
-                    
                     const os = data.os || "Unknown";
                     osMap[os] = (osMap[os] || 0) + 1;
-                    
                     if(total === 1) lastTime = new Date(data.server_time).toLocaleString();
 
                     const isCrit = data.event === "RANSOMWARE_BLOCKED";
-                    
-                    const row = `
-                        <tr>
-                            <td class="mono" style="color:#cbd5e1">${new Date(data.server_time).toLocaleTimeString()}</td>
-                            <td>${os}</td>
-                            <td><span class="badge ${isCrit ? 'blocked' : 'info'}">${isCrit ? 'CRITICAL' : 'INFO'}</span></td>
-                            <td class="mono" style="color:var(--text-muted)">${data.file}</td>
-                            <td>${isCrit ? '🛑 BLOCKED' : '👀 MONITORING'}</td>
-                        </tr>
-                    `;
+                    const row = `<tr>
+                        <td class="mono" style="color:#cbd5e1">${new Date(data.server_time).toLocaleTimeString()}</td>
+                        <td>${os}</td>
+                        <td><span class="badge ${isCrit ? 'blocked' : 'info'}">${isCrit ? 'CRITICAL' : 'INFO'}</span></td>
+                        <td class="mono" style="color:var(--text-muted)">${data.file}</td>
+                        <td>${isCrit ? '🛑 BLOCKED' : '👀 MONITORING'}</td>
+                    </tr>`;
                     tbody.innerHTML += row;
                 });
 
-                // Update Stats
                 document.getElementById('stat-blocked').innerText = blocked;
                 document.getElementById('stat-total').innerText = total;
-
-                // Update Reports
+                
                 const topOS = Object.keys(osMap).reduce((a, b) => osMap[a] > osMap[b] ? a : b, "None");
                 document.getElementById('rep-os').innerText = topOS;
                 document.getElementById('rep-time').innerText = lastTime;
-                
-                if(total > 0) {
-                    document.getElementById('rep-summary').innerText = 
-                        `System scan active. ${total} total events analyzed. ${blocked} unauthorized encryption attempts were automatically blocked by the active defense protocol. Primary attack vector identified on ${topOS} endpoints.`;
-                }
+                if(total > 0) document.getElementById('rep-summary').innerText = `System scan active. ${total} total events analyzed. ${blocked} unauthorized encryption attempts were automatically blocked. Primary attack vector: ${topOS}.`;
             });
         }
-
         window.clearLogs = () => document.getElementById('logs-body').innerHTML = '';
     </script>
 
     <script>
         function downloadAgent() {
-            if(!window.currentUserEmail) {
-                alert("Please wait for login to complete...");
-                return;
-            }
-
-            // Get the current Render URL dynamically
+            if(!window.currentUserEmail) { alert("Please login first."); return; }
             const backendUrl = window.location.origin + "/alert";
             const email = window.currentUserEmail;
 
-            // THE REAL INTELLIGENT PYTHON CODE
+            // INTELLIGENT PYTHON AGENT CODE
             const pythonCode = `import time, requests, os, platform, subprocess, sys
 
-# 1. AUTO-INSTALL DEPENDENCIES
-def install(package):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+# 1. AUTO-INSTALL LIBRARIES
+def install(package): subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
 try:
     from watchdog.observers import Observer
     from watchdog.events import FileSystemEventHandler
 except ImportError:
-    print("Installing required libraries (watchdog, requests)...")
+    print("Installing dependencies...")
     install("watchdog")
     install("requests")
     from watchdog.observers import Observer
@@ -413,7 +340,7 @@ HOME = os.path.expanduser("~")
 TARGET_FOLDER = os.path.join(HOME, "Desktop", "SecureFiles") 
 HONEYPOT_NAME = "!000_BAIT_FILE.docx"
 
-# 3. SECURITY LOGIC
+# 3. DEFENSE LOGIC
 class SecurityAgent:
     def __init__(self):
         self.os_type = platform.system()
@@ -422,7 +349,7 @@ class SecurityAgent:
     def setup_honeypot(self):
         if not os.path.exists(TARGET_FOLDER): os.makedirs(TARGET_FOLDER)
         path = os.path.join(TARGET_FOLDER, HONEYPOT_NAME)
-        with open(path, 'w') as f: f.write("TRAP FILE - DO NOT OPEN")
+        with open(path, 'w') as f: f.write("TRAP FILE")
         if self.os_type == "Windows": subprocess.run(f'attrib +h "{path}"', shell=True)
         return path
 
@@ -430,13 +357,12 @@ class SecurityAgent:
         print("\\n⚡ ENGAGING KILL SWITCH...")
         try:
             if self.os_type == "Windows":
-                # Deny Write Access & Cut Network
                 subprocess.run(f'icacls "{folder_path}" /deny Everyone:(W)', shell=True)
                 subprocess.run("ipconfig /release", shell=True)
             else:
                 subprocess.run(f'chmod 555 "{folder_path}"', shell=True)
-            print("🔒 System Locked & Network Isolation Active.")
-        except Exception as e: print(f"❌ Defense Failed: {e}")
+            print("🔒 System Locked & Network Cut.")
+        except Exception as e: print(f"❌ Failed: {e}")
 
 class ThreatHandler(FileSystemEventHandler):
     def __init__(self, agent, bait_path):
@@ -445,26 +371,17 @@ class ThreatHandler(FileSystemEventHandler):
         self.triggered = False
 
     def on_any_event(self, event):
-        # Trigger on Modify or Delete of Bait File
-        if not self.triggered and event.src_path == self.bait_path:
-            if event.event_type in ["deleted", "modified"]:
-                self.trigger_defense()
-
-    def trigger_defense(self):
-        self.triggered = True
-        print("\\n🚨 RANSOMWARE ACTIVITY DETECTED!")
-        self.agent.kill_switch(os.path.dirname(self.bait_path))
-        self.send_alert()
+        if not self.triggered and event.src_path == self.bait_path and event.event_type in ["deleted", "modified"]:
+            self.triggered = True
+            print("\\n🚨 RANSOMWARE DETECTED!")
+            self.agent.kill_switch(os.path.dirname(self.bait_path))
+            self.send_alert()
 
     def send_alert(self):
-        payload = {
-            "user_email": USER_EMAIL, "os": self.agent.os_type,
-            "file": HONEYPOT_NAME, "event": "RANSOMWARE_BLOCKED", "timestamp": time.time()
-        }
-        try: requests.post(BACKEND_URL, json=payload, timeout=5); print("📡 Alert sent to Dashboard.")
-        except: print("⚠️  Dashboard unreachable (Network Cut).")
+        payload = {"user_email": USER_EMAIL, "os": self.agent.os_type, "file": HONEYPOT_NAME, "event": "RANSOMWARE_BLOCKED", "timestamp": time.time()}
+        try: requests.post(BACKEND_URL, json=payload, timeout=5); print("📡 Alert sent.")
+        except: print("⚠️  Dashboard unreachable.")
 
-# 4. MAIN LOOP
 if __name__ == "__main__":
     agent = SecurityAgent()
     bait_path = agent.setup_honeypot()
@@ -472,7 +389,6 @@ if __name__ == "__main__":
     observer.schedule(ThreatHandler(agent, bait_path), TARGET_FOLDER, recursive=False)
     observer.start()
     print(f"🛡️  Agent Active. Monitoring: {TARGET_FOLDER}")
-    print(f"👤 Linked to Analyst: {USER_EMAIL}")
     try:
         while True: time.sleep(1)
     except KeyboardInterrupt:
@@ -481,8 +397,6 @@ if __name__ == "__main__":
             print("👉 To restore: ipconfig /renew")
             print(f"👉 To unlock: icacls \\"{TARGET_FOLDER}\\" /reset")
 `;
-
-            // Create Blob and trigger download
             const blob = new Blob([pythonCode], { type: 'text/x-python' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
