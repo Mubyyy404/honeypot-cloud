@@ -3,884 +3,496 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberSOC | Enterprise Defense</title>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>CyberSOC | Enterprise Defense System</title>
     
-    <!-- EmailJS (loaded but NOT used) -->
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script>
-        (function(){ emailjs.init("VYh5Cw0YPvRNIIgXb"); })();
-    </script>
-
-    <style>
-        :root { --bg:#0f172a; --sidebar:#1e293b; --card:#1e293b; --text:#f1f5f9; --muted:#94a3b8;
-        --accent:#3b82f6; --danger:#ef4444; --success:#22c55e; }
-
-        body { margin:0; font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden; }
-
-        .hidden { display:none!important; }
-
-        /* AUTH */
-        #auth-view { height:100vh; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle at top,#1e293b,#0f172a); }
-        .auth-card { background:rgba(30,41,59,0.8); backdrop-filter:blur(10px); padding:2.5rem; border-radius:1rem; border:1px solid #334155; width:350px; text-align:center; }
-        input { width:100%; padding:12px; margin:8px 0; background:#0f172a; border:1px solid #334155; color:white; border-radius:6px; }
-        .btn { width:100%; padding:12px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; margin-top:10px; transition:0.2s; }
-        .btn-primary { background:var(--accent); color:white; }
-        .btn-primary:hover { background:#2563eb; }
-        .btn-outline { background:transparent; border:1px solid #334155; color:var(--muted); }
-
-        /* DASHBOARD */
-        #dashboard-view { display:flex; height:100vh; }
-        .sidebar { width:260px; background:var(--sidebar); border-right:1px solid #334155; display:flex; flex-direction:column; }
-        .nav-item { padding:15px 25px; cursor:pointer; color:var(--muted); display:flex; align-items:center; gap:12px; transition:0.2s; }
-        .nav-item:hover, .nav-item.active { background:rgba(59,130,246,0.1); color:var(--text); border-left:3px solid var(--accent); }
-        .main-content { flex:1; padding:2rem; overflow-y:auto; }
-
-        /* CARDS + TABLE */
-        .stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; margin-bottom:2rem; }
-        .card { background:var(--card); border:1px solid #334155; border-radius:12px; padding:1.5rem; }
-        .card .value { font-size:2.5rem; font-weight:700; }
-        .table-box { background:var(--card); border:1px solid #334155; border-radius:12px; overflow:hidden; }
-        table { width:100%; border-collapse:collapse; }
-        th,td { padding:15px; text-align:left; border-bottom:1px solid #334155; }
-        .badge { padding:5px 10px; border-radius:20px; font-size:0.75rem; font-weight:bold; }
-        .badge-red { background:rgba(239,68,68,0.2); color:var(--danger); border:1px solid var(--danger); }
-        .badge-blue { background:rgba(59,130,246,0.2); color:var(--accent); border:1px solid var(--accent); }
-
-        .download-box { border:2px dashed #334155; padding:30px; text-align:center; border-radius:12px; margin-top:20px; }
-
-        .view-section { animation:fadeIn .3s ease-out; }
-        @keyframes fadeIn { from{opacity:0; transform:translateY(5px);} to{opacity:1; transform:translateY(0);} }
-    </style>
-</head>
-
-<body>
-
-<!-- AUTH SCREEN -->
-<div id="auth-view">
-    <div class="auth-card">
-        <h2 style="color:var(--accent); margin-bottom:5px;"><i class="fa-solid fa-shield-halved"></i> CyberSOC</h2>
-        <p style="color:var(--muted); margin-bottom:20px;">Secure Analyst Login</p>
-
-        <input type="email" id="email" placeholder="Analyst Email">
-        <input type="password" id="password" placeholder="Password">
-
-        <button class="btn btn-primary" onclick="handleAuth()">LOGIN / REGISTER</button>
-
-        <p id="auth-msg" style="color:var(--danger); margin-top:15px; font-size:0.9rem;"></p>
-    </div>
-</div>
-
-<!-- DASHBOARD -->
-<div id="dashboard-view" class="hidden">
-
-    <aside class="sidebar">
-        <div style="padding:20px; font-size:1.2rem; font-weight:bold; color:var(--accent); border-bottom:1px solid #334155;">
-            <i class="fa-solid fa-shield-halved"></i> CyberSOC
-        </div>
-
-        <nav style="flex:1; padding:20px 0;">
-            <div class="nav-item active" onclick="switchTab(event,'monitor')"><i class="fa-solid fa-radar"></i> Live Monitor</div>
-            <div class="nav-item" onclick="switchTab(event,'endpoints')"><i class="fa-solid fa-server"></i> Endpoints</div>
-            <div class="nav-item" onclick="switchTab(event,'reports')"><i class="fa-solid fa-file-contract"></i> Reports</div>
-        </nav>
-
-        <div style="padding:20px; border-top:1px solid #334155;">
-            <div id="user-display" style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">Loading...</div>
-            <button class="btn btn-outline" style="padding:8px; font-size:0.8rem;" onclick="handleLogout()">LOGOUT</button>
-        </div>
-    </aside>
-
-    <main class="main-content">
-
-        <!-- MONITOR -->
-        <div id="tab-monitor" class="view-section">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
-                <h2>Threat Monitor</h2>
-                <div style="color:var(--success); font-weight:bold;"><i class="fa-solid fa-circle fa-beat-fade"></i> SYSTEM ACTIVE</div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="card" style="border-top:4px solid var(--danger)">
-                    <h3>Attacks Blocked</h3>
-                    <div class="value" id="stat-blocked">0</div>
-                </div>
-                <div class="card" style="border-top:4px solid var(--accent)">
-                    <h3>Total Events</h3>
-                    <div class="value" id="stat-total">0</div>
-                </div>
-                <div class="card" style="border-top:4px solid var(--success)">
-                    <h3>System Health</h3>
-                    <div class="value" style="font-size:1.5rem; margin-top:10px; color:var(--success)">OPTIMAL</div>
-                </div>
-            </div>
-
-            <div class="table-box">
-                <div style="padding:15px; border-bottom:1px solid #334155; display:flex; justify-content:space-between;">
-                    <h3 style="margin:0;">Incident Log</h3>
-                    <button onclick="clearLogs()" style="background:none; border:none; color:var(--muted); cursor:pointer;">Clear History</button>
-                </div>
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th>TIME</th>
-                            <th>OS</th>
-                            <th>SEVERITY</th>
-                            <th>FILE PATH</th>
-                            <th>STATUS</th>
-                        </tr>
-                    </thead>
-                    <tbody id="logs-body"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- ENDPOINTS -->
-        <div id="tab-endpoints" class="view-section hidden">
-            <h2>Managed Endpoints</h2>
-
-            <div class="card">
-                <h3>Deploy New Agent</h3>
-                <p style="color:var(--muted)">Download the universal Python agent.</p>
-
-                <div class="download-box">
-                    <i class="fa-brands fa-python" style="font-size:3rem; color:var(--accent); margin-bottom:15px;"></i><br>
-                    <strong>universal_agent.py</strong><br>
-                    <span style="font-size:0.8rem; color:var(--muted);">v2.4</span><br><br>
-
-                    <button onclick="downloadAgent()" class="btn btn-primary" style="width:auto; display:inline-block;">
-                        <i class="fa-solid fa-download"></i> DOWNLOAD AGENT
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- REPORTS -->
-        <div id="tab-reports" class="view-section hidden">
-            <h2>Security Reports</h2>
-
-            <div class="stats-grid">
-                <div class="card"><h3>Most Attacked OS</h3><div class="value" id="rep-os" style="font-size:1.5rem;">Analyzing...</div></div>
-                <div class="card"><h3>Last Incident</h3><div class="value" id="rep-time" style="font-size:1rem; margin-top:12px;">None</div></div>
-            </div>
-
-            <div class="card">
-                <h3>Executive Summary</h3>
-                <p id="rep-summary" style="line-height:1.6; color:var(--muted);">No data available yet.</p>
-            </div>
-        </div>
-
-    </main>
-
-</div>
-
-
-<!-- FIREBASE + APP LOGIC -->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-    import { getFirestore, collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyCIY6AiBsGrq7wM0BBYGW2lM_0FLWjnH0k",
-        authDomain: "cybermonitor-1ab3c.firebaseapp.com",
-        projectId: "cybermonitor-1ab3c",
-        storageBucket: "cybermonitor-1ab3c.firebasestorage.app",
-        messagingSenderId: "569408987884",
-        appId: "1:569408987884:web:0839eb7932c206fc157bc9"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    window.handleAuth = () => {
-        const email = document.getElementById("email").value.trim();
-        const pass = document.getElementById("password").value;
-        const msg = document.getElementById("auth-msg");
-
-        if (!email || !pass) {
-            msg.innerText = "Enter Email & Password";
-            return;
-        }
-
-        signInWithEmailAndPassword(auth, email, pass)
-            .catch(err => {
-                if (err.code === "auth/user-not-found") {
-                    createUserWithEmailAndPassword(auth, email, pass)
-                        .then(() => alert("New Account Created!"))
-                        .catch(e => msg.innerText = e.message);
-                } else {
-                    msg.innerText = err.message;
-                }
-            });
-    };
-
-    window.handleLogout = () => signOut(auth);
-
-    let currentUserEmail = "";
-
-    onAuthStateChanged(auth, user => {
-        if (user) {
-            currentUserEmail = user.email;
-
-            document.getElementById("auth-view").classList.add("hidden");
-            document.getElementById("dashboard-view").classList.remove("hidden");
-            document.getElementById("user-display").innerText = user.email;
-
-            startDataStream(user.email);
-        } else {
-            document.getElementById("auth-view").classList.remove("hidden");
-            document.getElementById("dashboard-view").classList.add("hidden");
-        }
-    });
-
-    window.switchTab = (e, tab) => {
-        ["monitor","endpoints","reports"].forEach(t =>
-            document.getElementById("tab-" + t).classList.add("hidden")
-        );
-        document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
-        
-        document.getElementById("tab-" + tab).classList.remove("hidden");
-        e.currentTarget.classList.add("active");
-    };
-
-    function startDataStream(email) {
-        const q = query(
-            collection(db, "alerts"),
-            where("user_email", "==", email),
-            orderBy("server_time", "desc")
-        );
-
-        onSnapshot(q, snap => {
-            const tbody = document.getElementById("logs-body");
-            tbody.innerHTML = "";
-
-            let blocked = 0, total = 0, osCounts = {}, last = "None";
-
-            if (snap.empty) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px;">No incidents logged.</td></tr>`;
-            }
-
-            snap.forEach(doc => {
-                const data = doc.data();
-                total++;
-
-                if (data.event === "RANSOMWARE_BLOCKED") blocked++;
-
-                const os = data.os || "Unknown";
-                osCounts[os] = (osCounts[os] || 0) + 1;
-
-                if (total === 1) last = new Date(data.server_time * 1000).toLocaleString();
-
-                const isCrit = data.event === "RANSOMWARE_BLOCKED";
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${new Date(data.server_time * 1000).toLocaleTimeString()}</td>
-                        <td>${os}</td>
-                        <td><span class="badge ${isCrit?"badge-red":"badge-blue"}">${isCrit?"CRITICAL":"INFO"}</span></td>
-                        <td>${data.file}</td>
-                        <td>${isCrit?"🛑 BLOCKED":"👀 LOGGED"}</td>
-                    </tr>`;
-            });
-
-            document.getElementById("stat-blocked").innerText = blocked;
-            document.getElementById("stat-total").innerText = total;
-
-            const topOS = Object.keys(osCounts).sort((a,b)=>osCounts[b]-osCounts[a])[0] || "None";
-            document.getElementById("rep-os").innerText = topOS;
-            document.getElementById("rep-time").innerText = last;
-
-            if (total > 0)
-                document.getElementById("rep-summary").innerText =
-                    `System analysis complete. Detected ${total} events with ${blocked} blocks. Primary target: ${topOS}.`;
-        });
-    }
-
-    window.clearLogs = () => {
-        document.getElementById("logs-body").innerHTML = "";
-    };
-</script>
-
-<!-- AGENT DOWNLOAD (FIXED) -->
-<script>
-function downloadAgent() {
-    if (!currentUserEmail) {
-        alert("Please wait, loading user session...");
-        return;
-    }
-
-    const BACKEND_URL = window.location.origin + "/alert";
-
-    const agentCode = `#!/usr/bin/env python3
-import time
-import requests
-import os
-import platform
-import subprocess
-import sys
-
-try:
-    from watchdog.observers import Observer
-    from watchdog.events import FileSystemEventHandler
-except ImportError:
-    print("Installing libraries...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "watchdog", "requests"])
-    from watchdog.observers import Observer
-    from watchdog.events import FileSystemEventHandler
-
-BACKEND_URL = "${BACKEND_URL}"
-USER_EMAIL = "${currentUserEmail}"
-
-HOME = os.path.expanduser("~")
-TARGET_FOLDER = os.path.join(HOME, "Desktop", "SecureFiles")
-HONEYPOT_NAME = "!000_BAIT_FILE.docx"
-
-class SecurityAgent:
-    def __init__(self):
-        self.os_type = platform.system()
-        print("OS Detected:", self.os_type)
-
-    def setup_honeypot(self):
-        if not os.path.exists(TARGET_FOLDER):
-            os.makedirs(TARGET_FOLDER)
-
-        bait = os.path.join(TARGET_FOLDER, HONEYPOT_NAME)
-        with open(bait, "w") as f:
-            f.write("TRAP FILE")
-        return bait
-
-class ThreatHandler(FileSystemEventHandler):
-    def __init__(self, agent, bait):
-        self.agent = agent
-        self.bait = bait
-        self.triggered = False
-
-    def on_modified(self, event):
-        if event.src_path == self.bait and not self.triggered:
-            self.send_alert()
-
-    def send_alert(self):
-        self.triggered = True
-        payload = {
-            "user_email": USER_EMAIL,
-            "os": self.agent.os_type,
-            "file": HONEYPOT_NAME,
-            "event": "RANSOMWARE_BLOCKED",
-            "server_time": time.time()
-        }
-        try:
-            requests.post(BACKEND_URL, json=payload, timeout=3)
-            print("Alert sent")
-        except Exception as e:
-            print("Failed sending alert:", e)
-
-if __name__ == "__main__":
-    agent = SecurityAgent()
-    bait = agent.setup_honeypot()
-
-    observer = Observer()
-    observer.schedule(ThreatHandler(agent, bait), TARGET_FOLDER, recursive=False)
-    observer.start()
-
-    print("Monitoring:", TARGET_FOLDER)
-
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        observer.stop()
-        observer.join()
-`;
-
-    const blob = new Blob([agentCode], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "universal_agent.py";
-
-    document.body.appendChild(a);<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberSOC | Enterprise Defense</title>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script>
-        (function () { emailjs.init("VYh5Cw0YPvRNIIgXb"); })();
+        // OPTIONAL: PASTE EMAILJS KEY HERE IF YOU WANT EMAIL ALERTS
+        (function(){ emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); })();
     </script>
 
     <style>
         :root {
             --bg: #0f172a;
-            --sidebar: #1e293b;
+            --sidebar: #020617;
             --card: #1e293b;
-            --text: #f1f5f9;
-            --muted: #94a3b8;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
             --accent: #3b82f6;
+            --accent-hover: #2563eb;
             --danger: #ef4444;
             --success: #22c55e;
+            --border: #334155;
         }
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            height: 100vh;
-            overflow: hidden;
-        }
-        .hidden { display: none !important; }
 
-        /* Auth Screen */
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); height: 100vh; overflow: hidden; }
+        
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* === AUTH SCREEN === */
         #auth-view {
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: radial-gradient(circle at top, #1e293b, #0f172a);
+            height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(circle at top center, #1e293b 0%, #0f172a 100%);
         }
         .auth-card {
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 2.5rem;
-            border-radius: 1rem;
-            border: 1px solid #334155;
-            width: 350px;
-            text-align: center;
+            background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px);
+            padding: 3rem; border-radius: 16px; border: 1px solid var(--border);
+            width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
+        .logo { font-size: 2rem; font-weight: 800; color: var(--accent); margin-bottom: 0.5rem; letter-spacing: -1px; }
+        .logo i { margin-right: 10px; }
+        
         input {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            background: #0f172a;
-            border: 1px solid #334155;
-            color: white;
-            border-radius: 6px;
-            box-sizing: border-box;
+            width: 100%; padding: 14px; margin: 8px 0; background: #020617;
+            border: 1px solid var(--border); color: white; border-radius: 8px;
+            font-size: 1rem; transition: 0.2s; outline: none;
         }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+        
         .btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-            transition: 0.2s;
+            width: 100%; padding: 14px; border: none; border-radius: 8px;
+            cursor: pointer; font-weight: 600; font-size: 1rem; margin-top: 15px;
+            transition: all 0.2s;
         }
-        .btn-primary {
-            background: var(--accent);
-            color: white;
-        }
-        .btn-primary:hover { background: #2563eb; }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #334155;
-            color: var(--muted);
-        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+        .btn-outline:hover { border-color: var(--text-main); color: var(--text-main); }
 
-        /* Dashboard */
+        /* === DASHBOARD LAYOUT === */
         #dashboard-view { display: flex; height: 100vh; }
+        
+        /* Sidebar */
         .sidebar {
-            width: 260px;
-            background: var(--sidebar);
-            border-right: 1px solid #334155;
-            display: flex;
-            flex-direction: column;
+            width: 280px; background: var(--sidebar); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 20px 0;
         }
+        .sidebar-brand { padding: 0 24px 20px; border-bottom: 1px solid var(--border); margin-bottom: 20px; font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
+        .sidebar-brand i { color: var(--accent); margin-right: 10px; }
+        
         .nav-item {
-            padding: 15px 25px;
-            cursor: pointer;
-            color: var(--muted);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: 0.2s;
+            padding: 16px 24px; cursor: pointer; color: var(--text-muted);
+            display: flex; align-items: center; gap: 12px; transition: 0.2s;
+            font-size: 0.95rem; font-weight: 500; border-left: 3px solid transparent;
         }
-        .nav-item:hover, .nav-item.active {
-            background: rgba(59, 130, 246, 0.1);
-            color: var(--text);
-            border-left: 3px solid var(--accent);
-        }
-        .main-content { flex: 1; padding: 2rem; overflow-y: auto; }
+        .nav-item:hover { background: rgba(255, 255, 255, 0.03); color: var(--text-main); }
+        .nav-item.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); border-left-color: var(--accent); }
+        
+        .user-panel { margin-top: auto; padding: 24px; border-top: 1px solid var(--border); }
+        .user-email { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .card {
-            background: var(--card);
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 1.5rem;
-        }
-        .card .value {
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
+        /* Main Content */
+        .main-content { flex: 1; padding: 2rem; overflow-y: auto; background: var(--bg); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+        .header h2 { margin: 0; font-weight: 600; font-size: 1.5rem; }
+        .status-pill { background: rgba(34, 197, 94, 0.15); color: var(--success); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; border: 1px solid rgba(34, 197, 94, 0.2); }
+
+        /* Stats Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; position: relative; overflow: hidden; }
+        .card h3 { margin: 0 0 10px 0; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+        .card .value { font-size: 2.5rem; font-weight: 700; color: var(--text-main); }
+        .card-icon { position: absolute; right: 20px; bottom: 20px; font-size: 3rem; opacity: 0.1; }
 
         /* Table */
-        .table-box {
-            background: var(--card);
-            border: 1px solid #334155;
-            border-radius: 12px;
-            overflow: hidden;
-        }
+        .table-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .table-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #334155; }
+        th { text-align: left; padding: 1rem 1.5rem; color: var(--text-muted); font-weight: 600; font-size: 0.85rem; background: rgba(0,0,0,0.2); }
+        td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); color: var(--text-main); font-size: 0.95rem; }
+        tr:last-child td { border-bottom: none; }
+        
+        /* Badges */
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; }
+        .badge.blocked { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+        .badge.info { background: rgba(59, 130, 246, 0.2); color: var(--accent); border: 1px solid var(--accent); }
+        .mono { font-family: 'Consolas', monospace; color: #cbd5e1; }
 
-        .badge {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: bold;
+        /* Download Box */
+        .download-zone {
+            border: 2px dashed var(--border); border-radius: 12px; padding: 3rem; text-align: center;
+            transition: 0.2s; background: rgba(255,255,255,0.01);
         }
-        .badge-red {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--danger);
-            border: 1px solid var(--danger);
-        }
-        .badge-blue {
-            background: rgba(59, 130, 246, 0.2);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-        }
-
-        .download-box {
-            border: 2px dashed #334155;
-            padding: 30px;
-            text-align: center;
-            border-radius: 12px;
-            margin-top: 20px;
-        }
-
-        .view-section { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .download-zone:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.05); }
 
     </style>
 </head>
-
 <body>
 
-<!--------------------- AUTH VIEW --------------------->
-<div id="auth-view">
-    <div class="auth-card">
-        <h2 style="color:var(--accent); margin-bottom:5px;">
-            <i class="fa-solid fa-shield-halved"></i> CyberSOC
-        </h2>
-        <p style="color:var(--muted); margin-bottom:20px;">Secure Analyst Login</p>
-
-        <input type="email" id="email" placeholder="Analyst Email">
-        <input type="password" id="password" placeholder="Password">
-
-        <button class="btn btn-primary" onclick="handleAuth()">LOGIN / REGISTER</button>
-
-        <p id="auth-msg" style="color: var(--danger); margin-top:15px; font-size:0.9rem;"></p>
+    <div id="auth-view" class="fade-in">
+        <div class="auth-card">
+            <div class="logo"><i class="fa-solid fa-shield-halved"></i> CyberSOC</div>
+            <p style="color:var(--text-muted); margin-bottom:25px;">Enterprise Endpoint Defense</p>
+            
+            <input type="email" id="email" placeholder="Analyst Email">
+            <input type="password" id="password" placeholder="Access Key (Password)">
+            
+            <button class="btn btn-primary" onclick="handleAuth()">SECURE LOGIN</button>
+            <p id="auth-msg" style="color: var(--danger); margin-top:15px; font-size:0.9rem; min-height: 20px;"></p>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 20px;">
+                Note: If account doesn't exist, it will be created automatically.
+            </p>
+        </div>
     </div>
-</div>
 
-<!--------------------- DASHBOARD --------------------->
-<div id="dashboard-view" class="hidden">
-    <aside class="sidebar">
-        <div style="padding:20px; font-size:1.2rem; font-weight:bold; color:var(--accent); border-bottom:1px solid #334155;">
-            <i class="fa-solid fa-shield-halved"></i> CyberSOC
-        </div>
+    <div id="dashboard-view" class="hidden fade-in">
+        <aside class="sidebar">
+            <div class="sidebar-brand"><i class="fa-solid fa-shield-halved"></i> CyberSOC</div>
+            <nav style="flex:1;">
+                <div id="nav-monitor" class="nav-item active" onclick="switchTab('monitor')"><i class="fa-solid fa-radar"></i> Live Monitor</div>
+                <div id="nav-endpoints" class="nav-item" onclick="switchTab('endpoints')"><i class="fa-solid fa-server"></i> Endpoints</div>
+                <div id="nav-reports" class="nav-item" onclick="switchTab('reports')"><i class="fa-solid fa-file-contract"></i> Reports</div>
+            </nav>
+            <div class="user-panel">
+                <span id="user-display" class="user-email">Connecting...</span>
+                <button class="btn btn-outline" style="padding: 8px; font-size: 0.8rem;" onclick="handleLogout()">TERMINATE SESSION</button>
+            </div>
+        </aside>
 
-        <nav style="flex:1; padding:20px 0;">
-            <div class="nav-item active" onclick="switchTab(event,'monitor')"><i class="fa-solid fa-radar"></i> Live Monitor</div>
-            <div class="nav-item" onclick="switchTab(event,'endpoints')"><i class="fa-solid fa-server"></i> Endpoints</div>
-            <div class="nav-item" onclick="switchTab(event,'reports')"><i class="fa-solid fa-file-contract"></i> Reports</div>
-        </nav>
+        <main class="main-content">
+            <div id="tab-monitor">
+                <header class="header">
+                    <h2>Threat Intelligence</h2>
+                    <div class="status-pill"><i class="fa-solid fa-circle fa-beat-fade"></i> LIVE</div>
+                </header>
+                
+                <div class="stats-grid">
+                    <div class="card" style="border-top: 4px solid var(--danger);">
+                        <h3>Attacks Mitigated</h3>
+                        <div class="value" id="stat-blocked">0</div>
+                        <i class="fa-solid fa-ban card-icon"></i>
+                    </div>
+                    <div class="card" style="border-top: 4px solid var(--accent);">
+                        <h3>Total Events</h3>
+                        <div class="value" id="stat-total">0</div>
+                        <i class="fa-solid fa-list card-icon"></i>
+                    </div>
+                    <div class="card" style="border-top: 4px solid var(--success);">
+                        <h3>Network Status</h3>
+                        <div class="value" style="color:var(--success); font-size:2rem; margin-top:5px;">SECURE</div>
+                        <i class="fa-solid fa-wifi card-icon"></i>
+                    </div>
+                </div>
 
-        <div style="padding:20px; border-top:1px solid #334155;">
-            <div id="user-display" style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">Loading...</div>
-            <button class="btn btn-outline" style="padding:8px; font-size:0.8rem;" onclick="handleLogout()">LOGOUT</button>
-        </div>
-    </aside>
-
-    <main class="main-content">
-
-        <!----- Threat Monitor ----->
-        <div id="tab-monitor" class="view-section">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
-                <h2>Threat Monitor</h2>
-                <div style="color:var(--success); font-weight:bold;">
-                    <i class="fa-solid fa-circle fa-beat-fade"></i> SYSTEM ACTIVE
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3 style="margin:0; color:white;">Incident Logs</h3>
+                        <button onclick="clearLogs()" class="btn btn-outline" style="width:auto; padding:8px 16px; margin:0;">Clear History</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr><th>TIMESTAMP</th><th>OS</th><th>SEVERITY</th><th>FILE PATH</th><th>STATUS</th></tr>
+                        </thead>
+                        <tbody id="logs-body">
+                            </tbody>
+                    </table>
                 </div>
             </div>
 
-            <div class="stats-grid">
-                <div class="card" style="border-top:4px solid var(--danger)">
-                    <h3>Attacks Blocked</h3>
-                    <div class="value" id="stat-blocked">0</div>
-                </div>
-
-                <div class="card" style="border-top:4px solid var(--accent)">
-                    <h3>Total Events</h3>
-                    <div class="value" id="stat-total">0</div>
-                </div>
-
-                <div class="card" style="border-top:4px solid var(--success)">
-                    <h3>System Health</h3>
-                    <div class="value" style="font-size:1.5rem; margin-top:10px; color:var(--success)">OPTIMAL</div>
-                </div>
-            </div>
-
-            <div class="table-box">
-                <div style="padding:15px; border-bottom:1px solid #334155; display:flex; justify-content:space-between;">
-                    <h3 style="margin:0;">Incident Log</h3>
-                    <button onclick="clearLogs()" style="background:none; border:none; color:var(--muted); cursor:pointer;">Clear History</button>
-                </div>
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th>TIME</th><th>OS</th><th>SEVERITY</th><th>FILE PATH</th><th>STATUS</th>
-                        </tr>
-                    </thead>
-                    <tbody id="logs-body"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!----- Endpoints Tab ----->
-        <div id="tab-endpoints" class="view-section hidden">
-            <h2>Managed Endpoints</h2>
-
-            <div class="card">
-                <h3>Deploy New Agent</h3>
-                <p style="color:var(--muted)">Download the universal Python agent to monitor a new device.</p>
-
-                <div class="download-box">
-                    <i class="fa-brands fa-python" style="font-size:3rem; color:var(--accent); margin-bottom:15px;"></i><br>
-                    <strong>universal_agent.py</strong><br>
-                    <span style="font-size:0.8rem; color:var(--muted);">v2.4 | Windows, Linux, macOS Support</span><br><br>
-
-                    <button onclick="downloadAgent()" class="btn btn-primary" style="width:auto; display:inline-block;">
-                        <i class="fa-solid fa-download"></i> DOWNLOAD AGENT
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!----- Reports Tab ----->
-        <div id="tab-reports" class="view-section hidden">
-            <h2>Security Reports</h2>
-
-            <div class="stats-grid">
+            <div id="tab-endpoints" class="hidden">
+                <header class="header"><h2>Managed Endpoints</h2></header>
+                
                 <div class="card">
-                    <h3>Most Attacked OS</h3>
-                    <div class="value" id="rep-os" style="font-size:1.5rem;">Analyzing...</div>
+                    <h3 style="font-size:1.1rem; color:var(--text-main); margin-bottom:10px;">Deploy New Security Agent</h3>
+                    <p style="color:var(--text-muted); margin-bottom:20px;">
+                        Download the universal Python agent script. This script automatically detects the OS (Windows/Linux/Mac), installs required dependencies, and sets up the active honeypot defense.
+                    </p>
+                    
+                    <div class="download-zone">
+                        <i class="fa-brands fa-python" style="font-size:4rem; color:var(--accent); margin-bottom:15px;"></i><br>
+                        <strong style="font-size:1.2rem;">universal_agent.py</strong><br>
+                        <div style="color:var(--text-muted); font-size:0.9rem; margin-bottom:20px;">Version 2.5 (Stable) • Auto-Configured</div>
+                        
+                        <button onclick="downloadAgent()" class="btn btn-primary" style="width:auto; padding: 12px 30px;">
+                            <i class="fa-solid fa-download"></i> DOWNLOAD CONFIGURED AGENT
+                        </button>
+                    </div>
                 </div>
+            </div>
 
+            <div id="tab-reports" class="hidden">
+                <header class="header"><h2>System Reports</h2></header>
+                
+                <div class="stats-grid">
+                    <div class="card">
+                        <h3>Most Targeted OS</h3>
+                        <div class="value" id="rep-os" style="font-size:1.8rem;">Analyzing...</div>
+                    </div>
+                    <div class="card">
+                        <h3>Last Incident Detected</h3>
+                        <div class="value" id="rep-time" style="font-size:1.2rem; margin-top:10px;">None</div>
+                    </div>
+                </div>
+                
                 <div class="card">
-                    <h3>Last Incident</h3>
-                    <div class="value" id="rep-time" style="font-size:1rem; margin-top:12px;">None</div>
+                    <h3>AI Executive Summary</h3>
+                    <p id="rep-summary" style="line-height:1.6; color:var(--text-muted);">
+                        Waiting for data stream to generate analysis...
+                    </p>
                 </div>
             </div>
+        </main>
+    </div>
 
-            <div class="card">
-                <h3>Executive Summary</h3>
-                <p id="rep-summary" style="line-height:1.6; color:var(--muted);">No data available for analysis.</p>
-            </div>
-        </div>
-    </main>
-</div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-<!----------------- FIREBASE APP ----------------->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import {
-        getAuth, signInWithEmailAndPassword,
-        createUserWithEmailAndPassword, signOut,
-        onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-    import {
-        getFirestore, collection, query,
-        where, orderBy, onSnapshot
-    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        // ==========================================
+        // TODO: PASTE YOUR FIREBASE CONFIG KEYS HERE
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSy...",
+            authDomain: "...",
+            projectId: "...",
+            storageBucket: "...",
+            messagingSenderId: "...",
+            appId: "..."
+        };
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyCIY6AiBsGrq7wM0BBYGW2lM_0FLWjnH0k",
-        authDomain: "cybermonitor-1ab3c.firebaseapp.com",
-        projectId: "cybermonitor-1ab3c",
-        storageBucket: "cybermonitor-1ab3c.firebasestorage.app",
-        messagingSenderId: "569408987884",
-        appId: "1:569408987884:web:0839eb7932c206fc157bc9"
-    };
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+        // --- AUTHENTICATION ---
+        window.handleAuth = () => {
+            const e = document.getElementById('email').value.trim();
+            const p = document.getElementById('password').value;
+            const msg = document.getElementById('auth-msg');
 
-    window.handleAuth = () => {
-        const e = document.getElementById('email').value.trim();
-        const p = document.getElementById('password').value;
+            if(!e || !p) { msg.innerText = "Please enter both Email & Password."; return; }
 
-        if (!e || !p) {
-            document.getElementById('auth-msg').innerText = "Enter Email & Password";
-            return;
+            // Try Login first
+            signInWithEmailAndPassword(auth, e, p)
+                .catch((err) => {
+                    if (err.code === 'auth/user-not-found') {
+                        // User not found? Auto-Register them!
+                        createUserWithEmailAndPassword(auth, e, p)
+                            .then(() => alert("Account Created! Logging in..."))
+                            .catch(regErr => msg.innerText = regErr.message);
+                    } else if (err.code === 'auth/wrong-password') {
+                        msg.innerText = "Incorrect Password.";
+                    } else {
+                        msg.innerText = err.message;
+                    }
+                });
         }
 
-        signInWithEmailAndPassword(auth, e, p).catch((err) => {
-            if (err.code === 'auth/user-not-found') {
-                createUserWithEmailAndPassword(auth, e, p)
-                    .then(() => alert("New Account Created!"))
-                    .catch(e => document.getElementById('auth-msg').innerText = e.message);
+        window.handleLogout = () => signOut(auth);
+
+        // --- UI STATE MANAGEMENT ---
+        onAuthStateChanged(auth, (user) => {
+            if(user) {
+                // Show Dashboard
+                document.getElementById('auth-view').classList.add('hidden');
+                document.getElementById('dashboard-view').classList.remove('hidden');
+                
+                // Set User Data
+                document.getElementById('user-display').innerText = user.email;
+                window.currentUserEmail = user.email; // Save for download script
+                
+                // Start Listening to DB
+                startDataStream(user.email);
             } else {
-                document.getElementById('auth-msg').innerText = err.message;
+                // Show Login
+                document.getElementById('auth-view').classList.remove('hidden');
+                document.getElementById('dashboard-view').classList.add('hidden');
             }
         });
-    };
 
-    window.handleLogout = () => signOut(auth);
-
-    window.switchTab = (event, tab) => {
-        ['monitor', 'endpoints', 'reports']
-            .forEach(t => document.getElementById('tab-' + t).classList.add('hidden'));
-
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
-        document.getElementById('tab-' + tab).classList.remove('hidden');
-        event.currentTarget.classList.add('active');
-    };
-
-    let currentUserEmail = "";
-
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            document.getElementById('auth-view').classList.add('hidden');
-            document.getElementById('dashboard-view').classList.remove('hidden');
-
-            currentUserEmail = user.email;
-            document.getElementById('user-display').innerText = user.email;
-
-            startDataStream(user.email);
-        } else {
-            document.getElementById('auth-view').classList.remove('hidden');
-            document.getElementById('dashboard-view').classList.add('hidden');
-        }
-    });
-
-    function startDataStream(email) {
-        const q = query(
-            collection(db, "alerts"),
-            where("user_email", "==", email),
-            orderBy("server_time", "desc")
-        );
-
-        onSnapshot(q, (snapshot) => {
-            const tbody = document.getElementById('logs-body');
-            tbody.innerHTML = '';
-
-            let blocked = 0, total = 0, osCounts = {}, lastTime = "None";
-
-            if (snapshot.empty)
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b">No incidents logged.</td></tr>';
-
-            snapshot.forEach(doc => {
-                const data = doc.data();
-
-                total++;
-                if (data.event === "RANSOMWARE_BLOCKED") blocked++;
-
-                const os = data.os || "Unknown";
-                osCounts[os] = (osCounts[os] || 0) + 1;
-
-                if (total === 1)
-                    lastTime = new Date(data.server_time).toLocaleString();
-
-                const isCrit = data.event === "RANSOMWARE_BLOCKED";
-
-                const row = `
-                <tr>
-                    <td style="color:#cbd5e1; font-family:monospace;">
-                        ${new Date(data.server_time).toLocaleTimeString()}
-                    </td>
-                    <td>${os}</td>
-                    <td><span class="badge ${isCrit ? 'badge-red' : 'badge-blue'}">
-                        ${isCrit ? 'CRITICAL' : 'INFO'}
-                    </span></td>
-                    <td style="color:#94a3b8; font-family:monospace;">${data.file}</td>
-                    <td>${isCrit ? '🛑 BLOCKED' : '👀 LOGGED'}</td>
-                </tr>`;
-
-                tbody.innerHTML += row;
+        // Tab Switching Logic
+        window.switchTab = (tabName) => {
+            // Hide all tabs
+            ['monitor', 'endpoints', 'reports'].forEach(t => {
+                document.getElementById('tab-' + t).classList.add('hidden');
+                document.getElementById('nav-' + t).classList.remove('active');
             });
+            // Show selected
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.getElementById('nav-' + tabName).classList.add('active');
+        }
 
-            document.getElementById('stat-blocked').innerText = blocked;
-            document.getElementById('stat-total').innerText = total;
+        // --- DATA STREAM ---
+        function startDataStream(email) {
+            const q = query(collection(db, "alerts"), where("user_email", "==", email), orderBy("server_time", "desc"));
+            
+            onSnapshot(q, (snapshot) => {
+                const tbody = document.getElementById('logs-body');
+                tbody.innerHTML = '';
+                
+                let blocked = 0, total = 0, osMap = {};
+                let lastTime = "None";
 
-            const topOS = Object.keys(osCounts).reduce((a, b) =>
-                osCounts[a] > osCounts[b] ? a : b, "None");
+                if(snapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--text-muted)">No threats detected. Agent is listening...</td></tr>';
+                }
 
-            document.getElementById('rep-os').innerText = topOS;
-            document.getElementById('rep-time').innerText = lastTime;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    total++;
+                    if(data.event === "RANSOMWARE_BLOCKED") blocked++;
+                    
+                    const os = data.os || "Unknown";
+                    osMap[os] = (osMap[os] || 0) + 1;
+                    
+                    if(total === 1) lastTime = new Date(data.server_time).toLocaleString();
 
-            if (total > 0)
-                document.getElementById('rep-summary').innerText =
-                    `System analysis complete. Detected ${total} events with ${blocked} confirmed blocks. Primary target: ${topOS}.`;
-        });
-    }
+                    const isCrit = data.event === "RANSOMWARE_BLOCKED";
+                    
+                    const row = `
+                        <tr>
+                            <td class="mono" style="color:#cbd5e1">${new Date(data.server_time).toLocaleTimeString()}</td>
+                            <td>${os}</td>
+                            <td><span class="badge ${isCrit ? 'blocked' : 'info'}">${isCrit ? 'CRITICAL' : 'INFO'}</span></td>
+                            <td class="mono" style="color:var(--text-muted)">${data.file}</td>
+                            <td>${isCrit ? '🛑 BLOCKED' : '👀 MONITORING'}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
 
-    window.clearLogs = () => document.getElementById('logs-body').innerHTML = '';
-</script>
+                // Update Stats
+                document.getElementById('stat-blocked').innerText = blocked;
+                document.getElementById('stat-total').innerText = total;
 
-<!----------------- FIXED DOWNLOAD AGENT SCRIPT ----------------->
-<script>
-function downloadAgent() {
-    console.log("Download clicked.");
+                // Update Reports
+                const topOS = Object.keys(osMap).reduce((a, b) => osMap[a] > osMap[b] ? a : b, "None");
+                document.getElementById('rep-os').innerText = topOS;
+                document.getElementById('rep-time').innerText = lastTime;
+                
+                if(total > 0) {
+                    document.getElementById('rep-summary').innerText = 
+                        `System scan active. ${total} total events analyzed. ${blocked} unauthorized encryption attempts were automatically blocked by the active defense protocol. Primary attack vector identified on ${topOS} endpoints.`;
+                }
+            });
+        }
 
-    const email = window.currentUserEmail || "default@example.com";
-    const BACKEND_URL = window.location.origin + "/alert";
+        window.clearLogs = () => document.getElementById('logs-body').innerHTML = '';
+    </script>
 
-    console.log("Email:", email);
-    console.log("Backend:", BACKEND_URL);
+    <script>
+        function downloadAgent() {
+            if(!window.currentUserEmail) {
+                alert("Please wait for login to complete...");
+                return;
+            }
 
-    const code = `#!/usr/bin/env python3
-import time, requests, os, platform
+            // Get the current Render URL dynamically
+            const backendUrl = window.location.origin + "/alert";
+            const email = window.currentUserEmail;
 
-print("Agent Active")
-print("User:", "${email}")
-print("POST ->", "${BACKEND_URL}")
+            // THE REAL INTELLIGENT PYTHON CODE
+            const pythonCode = `import time, requests, os, platform, subprocess, sys
+
+# 1. AUTO-INSTALL DEPENDENCIES
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+try:
+    from watchdog.observers import Observer
+    from watchdog.events import FileSystemEventHandler
+except ImportError:
+    print("Installing required libraries (watchdog, requests)...")
+    install("watchdog")
+    install("requests")
+    from watchdog.observers import Observer
+    from watchdog.events import FileSystemEventHandler
+
+# 2. CONFIGURATION
+BACKEND_URL = "${backendUrl}"
+USER_EMAIL = "${email}"
+HOME = os.path.expanduser("~")
+TARGET_FOLDER = os.path.join(HOME, "Desktop", "SecureFiles") 
+HONEYPOT_NAME = "!000_BAIT_FILE.docx"
+
+# 3. SECURITY LOGIC
+class SecurityAgent:
+    def __init__(self):
+        self.os_type = platform.system()
+        print(f"🖥️  OS DETECTED: {self.os_type}")
+
+    def setup_honeypot(self):
+        if not os.path.exists(TARGET_FOLDER): os.makedirs(TARGET_FOLDER)
+        path = os.path.join(TARGET_FOLDER, HONEYPOT_NAME)
+        with open(path, 'w') as f: f.write("TRAP FILE - DO NOT OPEN")
+        if self.os_type == "Windows": subprocess.run(f'attrib +h "{path}"', shell=True)
+        return path
+
+    def kill_switch(self, folder_path):
+        print("\\n⚡ ENGAGING KILL SWITCH...")
+        try:
+            if self.os_type == "Windows":
+                # Deny Write Access & Cut Network
+                subprocess.run(f'icacls "{folder_path}" /deny Everyone:(W)', shell=True)
+                subprocess.run("ipconfig /release", shell=True)
+            else:
+                subprocess.run(f'chmod 555 "{folder_path}"', shell=True)
+            print("🔒 System Locked & Network Isolation Active.")
+        except Exception as e: print(f"❌ Defense Failed: {e}")
+
+class ThreatHandler(FileSystemEventHandler):
+    def __init__(self, agent, bait_path):
+        self.agent = agent
+        self.bait_path = bait_path
+        self.triggered = False
+
+    def on_any_event(self, event):
+        # Trigger on Modify or Delete of Bait File
+        if not self.triggered and event.src_path == self.bait_path:
+            if event.event_type in ["deleted", "modified"]:
+                self.trigger_defense()
+
+    def trigger_defense(self):
+        self.triggered = True
+        print("\\n🚨 RANSOMWARE ACTIVITY DETECTED!")
+        self.agent.kill_switch(os.path.dirname(self.bait_path))
+        self.send_alert()
+
+    def send_alert(self):
+        payload = {
+            "user_email": USER_EMAIL, "os": self.agent.os_type,
+            "file": HONEYPOT_NAME, "event": "RANSOMWARE_BLOCKED", "timestamp": time.time()
+        }
+        try: requests.post(BACKEND_URL, json=payload, timeout=5); print("📡 Alert sent to Dashboard.")
+        except: print("⚠️  Dashboard unreachable (Network Cut).")
+
+# 4. MAIN LOOP
+if __name__ == "__main__":
+    agent = SecurityAgent()
+    bait_path = agent.setup_honeypot()
+    observer = Observer()
+    observer.schedule(ThreatHandler(agent, bait_path), TARGET_FOLDER, recursive=False)
+    observer.start()
+    print(f"🛡️  Agent Active. Monitoring: {TARGET_FOLDER}")
+    print(f"👤 Linked to Analyst: {USER_EMAIL}")
+    try:
+        while True: time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+        if agent.os_type == "Windows":
+            print("👉 To restore: ipconfig /renew")
+            print(f"👉 To unlock: icacls \\"{TARGET_FOLDER}\\" /reset")
 `;
 
-    const blob = new Blob([code], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "universal_agent.py";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    URL.revokeObjectURL(url);
-}
-</script>
-
-</body>
-</html>
-
-    a.click();
-    document.body.removeChild(a);
-
-    URL.revokeObjectURL(url);
-}
-</script>
-
+            // Create Blob and trigger download
+            const blob = new Blob([pythonCode], { type: 'text/x-python' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "universal_agent.py";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
 </body>
 </html>
