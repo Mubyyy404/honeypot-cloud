@@ -134,8 +134,7 @@
                         <thead>
                             <tr><th>TIME</th><th>OS</th><th>SEVERITY</th><th>FILE PATH</th><th>STATUS</th></tr>
                         </thead>
-                        <tbody id="logs-body">
-                            </tbody>
+                        <tbody id="logs-body"></tbody>
                     </table>
                 </div>
             </div>
@@ -145,15 +144,16 @@
                 
                 <div class="card">
                     <h3>Deploy New Agent</h3>
-                    <p style="color:var(--muted)">Download the universal Python agent to monitor a new device.</p>
+                    <p style="color:var(--muted)">Download the universal Python agent to monitor a new device. This script includes intelligent OS detection and honeypot deployment.</p>
                     
                     <div class="download-box">
                         <i class="fa-brands fa-python" style="font-size:3rem; color:var(--accent); margin-bottom:15px;"></i><br>
                         <strong>universal_agent.py</strong><br>
                         <span style="font-size:0.8rem; color:var(--muted);">v2.4 | Windows, Linux, macOS Support</span><br><br>
-                        <a href="agent.py" download="universal_agent.py" class="btn btn-primary" style="width:auto; display:inline-block; text-decoration:none;">
+                        
+                        <button onclick="downloadAgent()" class="btn btn-primary" style="width:auto; display:inline-block;">
                             <i class="fa-solid fa-download"></i> DOWNLOAD AGENT
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -197,7 +197,7 @@
             projectId: "cybermonitor-1ab3c",
             storageBucket: "cybermonitor-1ab3c.firebasestorage.app",
             messagingSenderId: "569408987884",
-            appId: "569408987884:web:0839eb7932c206fc157bc9"
+            appId: "1:569408987884:web:0839eb7932c206fc157bc9"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -206,16 +206,14 @@
 
         // --- AUTH ---
         window.handleAuth = () => {
-            const e = document.getElementById('email').value.trim(); // FIX: Trim spaces
+            const e = document.getElementById('email').value.trim(); 
             const p = document.getElementById('password').value;
             
             if(!e || !p) { document.getElementById('auth-msg').innerText = "Enter Email & Password"; return; }
 
-            // Try Login first, if fails, try Register
             signInWithEmailAndPassword(auth, e, p)
                 .catch((err) => {
                     if(err.code === 'auth/user-not-found') {
-                        // User doesn't exist? Create them automatically!
                         createUserWithEmailAndPassword(auth, e, p)
                             .then(() => alert("New Account Created!"))
                             .catch(e => document.getElementById('auth-msg').innerText = e.message);
@@ -227,11 +225,14 @@
         window.handleLogout = () => signOut(auth);
 
         // --- UI SWITCHING ---
+        let currentUserEmail = "";
+
         onAuthStateChanged(auth, (user) => {
             if(user) {
                 document.getElementById('auth-view').classList.add('hidden');
                 document.getElementById('dashboard-view').classList.remove('hidden');
                 document.getElementById('user-display').innerText = user.email;
+                currentUserEmail = user.email;
                 startDataStream(user.email);
             } else {
                 document.getElementById('auth-view').classList.remove('hidden');
@@ -240,14 +241,9 @@
         });
 
         window.switchTab = (tabName) => {
-            // Hide all tabs
             ['monitor', 'endpoints', 'reports'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden'));
-            // Remove active class from nav
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
-            // Show selected
             document.getElementById('tab-'+tabName).classList.remove('hidden');
-            // Highlight nav (simple find)
             event.currentTarget.classList.add('active');
         }
 
@@ -273,12 +269,10 @@
                     total++;
                     if(data.event === "RANSOMWARE_BLOCKED") blocked++;
                     
-                    // Count OS for Report
                     const os = data.os || "Unknown";
                     osCounts[os] = (osCounts[os] || 0) + 1;
                     if(total === 1) lastTime = new Date(data.server_time).toLocaleString();
 
-                    // Render Row
                     const isCrit = data.event === "RANSOMWARE_BLOCKED";
                     const row = `<tr>
                         <td style="color:#cbd5e1; font-family:monospace;">${new Date(data.server_time).toLocaleTimeString()}</td>
@@ -290,7 +284,6 @@
                     tbody.innerHTML += row;
                 });
 
-                // Update Monitor Stats
                 document.getElementById('stat-blocked').innerText = blocked;
                 document.getElementById('stat-total').innerText = total;
 
@@ -308,5 +301,117 @@
         
         window.clearLogs = () => document.getElementById('logs-body').innerHTML = '';
     </script>
-</body>
-</html>
+
+    <script>
+        function downloadAgent() {
+            // Get current URL automatically so the agent always points to the right server
+            const currentUrl = window.location.origin + "/alert";
+            const userEmail = currentUserEmail || "student@test.com";
+
+            // The Python Code Template
+            const agentCode = `import time
+import requests
+import os
+import platform
+import subprocess
+import sys
+
+# Auto-install dependencies if missing
+try:
+    from watchdog.observers import Observer
+    from watchdog.events import FileSystemEventHandler
+except ImportError:
+    print("Installing required libraries...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "watchdog", "requests"])
+    from watchdog.observers import Observer
+    from watchdog.events import FileSystemEventHandler
+
+# ================= CONFIGURATION =================
+BACKEND_URL = "${currentUrl}"
+USER_EMAIL = "${userEmail}"
+
+# Setup Paths
+HOME = os.path.expanduser("~")
+TARGET_FOLDER = os.path.join(HOME, "Desktop", "SecureFiles") 
+HONEYPOT_NAME = "!000_BAIT_FILE.docx"
+# =================================================
+
+class SecurityAgent:
+    def __init__(self):
+        self.os_type = platform.system()
+        print(f"🖥️  OS DETECTED: {self.os_type}")
+
+    def setup_honeypot(self):
+        if not os.path.exists(TARGET_FOLDER):
+            os.makedirs(TARGET_FOLDER)
+        
+        path = os.path.join(TARGET_FOLDER, HONEYPOT_NAME)
+        with open(path, 'w') as f:
+            f.write("This is a trap file. Do not delete.")
+        
+        # Hide the file on Windows
+        if self.os_type == "Windows":
+            subprocess.run(f'attrib +h "{path}"', shell=True)
+        
+        return path
+
+    def kill_switch(self, folder_path):
+        print("\\n⚡ ENGAGING KILL SWITCH...")
+        
+        # 1. Lock Folder
+        try:
+            if self.os_type == "Windows":
+                cmd = f'icacls "{folder_path}" /deny Everyone:(W)'
+                subprocess.run(cmd, shell=True)
+            else:
+                cmd = f'chmod 555 "{folder_path}"'
+                subprocess.run(cmd, shell=True)
+            print("🔒 Folder LOCKED (Read-Only).")
+        except Exception as e:
+            print(f"❌ Lock Failed: {e}")
+
+        # 2. Cut Network (Simulation)
+        try:
+            if self.os_type == "Windows":
+                print("✂️  Cutting Network Adapter...")
+                subprocess.run("ipconfig /release", shell=True)
+            else:
+                print("✂️  [SIMULATION] Network Cut (Requires Root).")
+        except:
+            pass
+
+class ThreatHandler(FileSystemEventHandler):
+    def __init__(self, agent, bait_path):
+        self.agent = agent
+        self.bait_path = bait_path
+        self.triggered = False
+
+    def on_any_event(self, event):
+        # We trigger if the bait file is Modified or Deleted
+        if not self.triggered and event.src_path == self.bait_path:
+            if event.event_type in ["deleted", "modified"]:
+                self.trigger_defense()
+
+    def trigger_defense(self):
+        self.triggered = True
+        print("\\n🚨 HONEYPOT TRIGGERED! RANSOMWARE DETECTED!")
+        
+        # Active Response
+        self.agent.kill_switch(os.path.dirname(self.bait_path))
+        
+        # Send Alert
+        self.send_alert()
+
+    def send_alert(self):
+        payload = {
+            "user_email": USER_EMAIL,
+            "os": self.agent.os_type,
+            "file": HONEYPOT_NAME,
+            "event": "RANSOMWARE_BLOCKED",
+            "timestamp": time.time()
+        }
+        try:
+            requests.post(BACKEND_URL, json=payload, timeout=5)
+            print("📡 Alert sent to SOC Dashboard.")
+        except:
+            print("⚠️  Dashboard
